@@ -19,7 +19,7 @@ using namespace std;
 
 #define PRINT_TIMES(f) {\
 	cout << f << "@" << msg.time() <<\
-		" - timeleft: " << timeleft <<\
+		" - timeleft: " << timeLeft <<\
 		" - elapsed: " << elapsed <<\
 		" - sigma: " << sigma << endl;\
 }
@@ -31,7 +31,7 @@ using namespace std;
 * Description: constructor
 ********************************************************************/
 Router::Router( const string &name ) : 
-	Atomic( name )
+	Atomic( name ),
 	out(addOutputPort( "out" ))
 {
 	startHour = 7;
@@ -43,7 +43,7 @@ Router::Router( const string &name ) :
 }
 
 
-Router::scheudleTrucksForTheDay() {
+void Router::scheudleTrucksForTheDay() {
 	// TODO cambiar estas tres a parametros ?
 	int n = 200; 
 	float mean = (endHour+startHour)/2.0;
@@ -51,10 +51,10 @@ Router::scheudleTrucksForTheDay() {
 
 	while (scheudledTrucks.size() < n) {
 		double sample = distribution().get();
-		sample = sample*stddev + mean
+		sample = sample*stdev + mean;
 		
 		if (startHour <= sample and sample <= endHour ) {
-			sample = sample * 3600
+			sample = sample * 3600;
 			VTime( static_cast< float >(sample) ) time;
 			scheudledTrucks.push_back(time);
 		}
@@ -65,8 +65,8 @@ Router::scheudleTrucksForTheDay() {
 	// iteramos la lista para obtener la diferencia con el anterior
 	VTime prevValue = VTime(startHour,0,0,0);
 	auto  it = scheudledTrucks.begin();
-  	while(it != lst.end()) {
-		float newValue = *it;
+  	while(it != scheudledTrucks.end()) {
+		VTime newValue = *it;
 		*it = *it - prevValue;
 		prevValue = newValue;
 		it++;
@@ -126,15 +126,16 @@ Model &Router::internalFunction( const InternalMessage &msg )
 	PRINT_TIMES("dint");
 #endif
 
-	if (scheudledTrucks..size() == 0) {
+	if (scheudledTrucks.size() == 0) {
 		scheudleTrucksForTheDay();
-		int current_hours = msg.time().hours();
-		int hoursToNextAwake =  24 - (current_hours%24) + startHour
+		int current_hours = endHour; // temp msg.time().hours();
+		int hoursToNextAwake =  24 - (current_hours%24) + startHour;
 		VTime targetAwake = VTime(current_hours+hoursToNextAwake,0,0,0);
-		this->sigma = targetAwake-msg.time()
+		this->sigma = targetAwake-msg.time();
 	}
 	else {
-		this->sigma = scheudledTrucks.pop_front();
+		this->sigma = scheudledTrucks.front();
+		scheudledTrucks.pop_front();
 	}
 
 	holdIn( AtomicState::active, this->sigma );
