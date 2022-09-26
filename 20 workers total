@@ -1,0 +1,47 @@
+20 workers total
+
+10 workers son turno mañana (9am hasta las 18hs)
+10 worker son turno noche (12pm hasta las 21hs)
+
+5 gates
+Min 4 workers por gate
+
+------------------------
+
+De 9am a 12pm
+
+Gate 1: 5 TM 
+Gate 2: 5 TM
+Gate 3: cerrada
+Gate 4: cerrada
+Gate 5: cerrada
+
+De 12pm a 18hs
+Gate 1: 8
+Gate 2: 2 TN, 2 TM
+Gate 3: 2 TN, 2 TM
+Gate 4: 2 TN, 2 TM
+Gate 5: 2 TN, 2 TM
+
+De 18hs a 21hs
+Gate 1: 5 TN
+Gate 2: 5 TN
+Gate 3: cerrada
+Gate 4: cerrada
+Gate 5: cerrada
+
+-------------------------
+
+La gate en un horario va a tener N workers 
+y en otro horario va a estar apagada o con M workers
+
+Cada worker tiene 2 time advance
+
+---------
+
+Gate : 6 workers y un horario de apertura
+
+3 que funciona de 9 a 12 y de 18 a 21
+2 que funcionan de 9 a 18
+2 que funcionan de 12 a 21
+1 que funciona de 21 a 9am
