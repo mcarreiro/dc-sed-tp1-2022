@@ -33,10 +33,13 @@ using namespace std;
 Router::Router( const string &name ) : 
 	Atomic( name )
 	out(addOutputPort( "out" ))
-	in(addInputPort( "in" ))
 {
 	startHour = 7;
 	endHour = 11;
+	dist = Distribution::create("normal");
+	MASSERT( dist ) ;
+	dist->setVar( 0,0 ) ; // mean
+	dist->setVar( 1,1 ) ; // var
 }
 
 
@@ -46,18 +49,21 @@ Router::scheudleTrucksForTheDay() {
 	float mean = (endHour+startHour)/2.0;
 	float stdev = 1.0;
 
-	std::normal_distribution<float> normal(mean, stddev);
-
 	while (scheudledTrucks.size() < n) {
-		float sample = normal(gen);
+		double sample = distribution().get();
+		sample = sample*stddev + mean
+		
 		if (startHour <= sample and sample <= endHour ) {
-			scheudledTrucks.push_back(sample);
+			sample = sample * 3600
+			VTime( static_cast< float >(sample) ) time;
+			scheudledTrucks.push_back(time);
 		}
 	}
+
 	scheudledTrucks.sort();
 
 	// iteramos la lista para obtener la diferencia con el anterior
-	float prevValue = startHour;
+	VTime prevValue = VTime(startHour,0,0,0);
 	auto  it = scheudledTrucks.begin();
   	while(it != lst.end()) {
 		float newValue = *it;
@@ -122,14 +128,16 @@ Model &Router::internalFunction( const InternalMessage &msg )
 
 	if (scheudledTrucks..size() == 0) {
 		scheudleTrucksForTheDay();
-		this->sigma = VTime(0,0,8,0); // TODO arreglar esto para que se levante siempre a la misma hora
+		int current_hours = msg.time().hours();
+		int hoursToNextAwake =  24 - (current_hours%24) + startHour
+		VTime targetAwake = VTime(current_hours+hoursToNextAwake,0,0,0);
+		this->sigma = targetAwake-msg.time()
 	}
 	else {
-		float sigmaSeconds = scheudledTrucks.pop_front();
-		this->sigma = VTime(0,0,sigmaSeconds,0);
+		this->sigma = scheudledTrucks.pop_front();
 	}
 
-	holdIn( AtomicState::passive, this->sigma );
+	holdIn( AtomicState::active, this->sigma );
 	return *this;
 
 }

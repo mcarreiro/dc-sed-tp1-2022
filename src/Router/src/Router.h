@@ -12,6 +12,7 @@
 /** forward declarations **/
 //TODO: add distribution class declaration here if needed
 // Ej: class Distribution ;
+ class Distribution ;
 
 /** declarations **/
 class Router: public Atomic {
@@ -29,19 +30,15 @@ class Router: public Atomic {
 	private:
 		int startHour; // hora del dia donde comienzan a llegar camiones
 		int endHour; // hora del dia donde dejan de llegar camiones
-
+		Distribution *dist ;
+		Distribution &distribution()	{ return *dist; }
 		void scheudleTrucksForTheDay();
 
 		// va ser una lista de sigmas indicando la espera al siguiente
-		list<float> scheudledTrucks;
-
+		list<VTime> scheudledTrucks;
 		
-		// para usar normales de c++. Probablemente se cambie para usar normales de cd++
-    	std::random_device rd; 
-		std::mt19937 gen(rd()); 
 
-
-		const Port &in;
+		// const Port &in;
 		Port &out ;
 		// Lifetime programmed since the last state transition to the next planned internal transition.
 		VTime sigma;
