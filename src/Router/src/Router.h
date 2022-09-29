@@ -12,7 +12,8 @@
 /** forward declarations **/
 //TODO: add distribution class declaration here if needed
 // Ej: class Distribution ;
- class Distribution ;
+class Distribution ;
+//class Tuple<int>;
 
 /** declarations **/
 class Router: public Atomic {
@@ -33,6 +34,11 @@ class Router: public Atomic {
 		Distribution *dist ;
 		Distribution &distribution()	{ return *dist; }
 		void scheudleTrucksForTheDay();
+		int getPacketsInTruck(float probability); // usando una distribucion exponencial 
+		
+		Distribution *distPacketA;
+		Distribution *distPacketB; 
+		Distribution *distPacketC; 
 
 		// va ser una lista de sigmas indicando la espera al siguiente
 		list<VTime> scheudledTrucks;

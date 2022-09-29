@@ -24,6 +24,7 @@ using namespace std;
 		" - sigma: " << sigma << endl;\
 }
 
+
 /** public functions **/
 
 /*******************************************************************
@@ -35,19 +36,33 @@ Router::Router( const string &name ) :
 	out(addOutputPort( "out" ))
 {
 	startHour = 7;
-	endHour = 11;
+	endHour = 23;
 	dist = Distribution::create("normal");
 	MASSERT( dist ) ;
 	dist->setVar( 0,0 ) ; // mean
 	dist->setVar( 1,1 ) ; // var
+
+	distPacketA = Distribution::create("exponential");
+	MASSERT( distPacketA ) ;
+	distPacketA->setVar( 0,5 ) ; // mean
+
+	distPacketB = Distribution::create("exponential");
+	MASSERT( distPacketB ) ;
+	distPacketB->setVar( 0,5 ) ; // mean
+
+	distPacketC = Distribution::create("exponential");
+	MASSERT( distPacketC ) ;
+	distPacketC->setVar( 0,5 ) ; // mean
+
+	scheudleTrucksForTheDay();
 }
 
 
 void Router::scheudleTrucksForTheDay() {
 	// TODO cambiar estas tres a parametros ?
-	int n = 200; 
+	int n = 5; 
 	float mean = (endHour+startHour)/2.0;
-	float stdev = 1.0;
+	float stdev = 2.0;
 
 	while (scheudledTrucks.size() < n) {
 		double sample = distribution().get();
@@ -55,8 +70,7 @@ void Router::scheudleTrucksForTheDay() {
 		
 		if (startHour <= sample and sample <= endHour ) {
 			sample = sample * 3600;
-			VTime( static_cast< float >(sample) ) time;
-			scheudledTrucks.push_back(time);
+			scheudledTrucks.push_back(VTime( sample ));
 		}
 	}
 
@@ -73,6 +87,14 @@ void Router::scheudleTrucksForTheDay() {
   	}
 }
 
+
+int Router::getPacketsInTruck(float probability) {
+	int res = (int) (*distPacketC).get();
+	return res;
+
+}
+
+
 /*******************************************************************
 * Function Name: initFunction
 ********************************************************************/
@@ -80,9 +102,9 @@ Model &Router::initFunction()
 {
 	// [(!) Initialize common variables]
 	this->elapsed  = VTime::Zero;
- 	this->timeLeft = VTime::Inf;
+ 	this->timeLeft = VTime(startHour,0,0,0);
  	// this->sigma = VTime::Inf; // stays in active state until an external event occurs;
- 	this->sigma    = VTime::Zero; // force an internal transition in t=0;
+ 	this->sigma    = VTime(startHour,0,0,0); // force an internal transition in t=0;
 
  	// TODO: add init code here. (setting first state, etc)
  	
@@ -117,26 +139,29 @@ Model &Router::externalFunction( const ExternalMessage &msg )
 Model &Router::internalFunction( const InternalMessage &msg )
 {
 
-	//[(!) update common variables]	
-	this->sigma    = nextChange();	
-	this->elapsed  = msg.time()-lastChange();	
- 	this->timeLeft = this->sigma - this->elapsed; 
-
-#if VERBOSE
-	PRINT_TIMES("dint");
-#endif
 
 	if (scheudledTrucks.size() == 0) {
 		scheudleTrucksForTheDay();
-		int current_hours = endHour; // temp msg.time().hours();
-		int hoursToNextAwake =  24 - (current_hours%24) + startHour;
-		VTime targetAwake = VTime(current_hours+hoursToNextAwake,0,0,0);
-		this->sigma = targetAwake-msg.time();
-	}
-	else {
-		this->sigma = scheudledTrucks.front();
+		int current_hours =(int) (msg.time().asSecs()/3600);
+		int hoursToNextAwake = (24 - (current_hours)%24) + startHour;
+		float inSeconds = (hoursToNextAwake)*3600;
+		
+		VTime targetAwake = VTime(hoursToNextAwake+current_hours,0,0,0) - msg.time()  + scheudledTrucks.front();
 		scheudledTrucks.pop_front();
+		scheudledTrucks.push_front(targetAwake) ;
+
+		cout << "hoursToNextAwake " << hoursToNextAwake << endl;
+		cout << "end day wait " << targetAwake.asString() << endl;
+		cout << "wake up at " <<  VTime(hoursToNextAwake+current_hours,0,0,0).asString() << endl;
+		cout << "now " <<  msg.time().asString() << endl;
+		//this->sigma = VTime(8,0,0,0);
 	}
+
+	this->sigma = scheudledTrucks.front();
+	scheudledTrucks.pop_front();
+
+	this->elapsed  = VTime::Zero;
+ 	this->timeLeft = this->sigma - this->elapsed; 
 
 	holdIn( AtomicState::active, this->sigma );
 	return *this;
@@ -151,7 +176,10 @@ Model &Router::internalFunction( const InternalMessage &msg )
 Model &Router::outputFunction( const CollectMessage &msg )
 {
 	// TODO cambiar para que escupa camiones
-	sendOutput( msg.time(), out, 0) ;
+	int hola = getPacketsInTruck(4.0);
+	//Tuple<int> t = Tuple<int>(0,0,0);
+	cout << "envio " << hola << endl;
+	sendOutput( msg.time(), out, hola) ;
 	return *this;
 
 }
