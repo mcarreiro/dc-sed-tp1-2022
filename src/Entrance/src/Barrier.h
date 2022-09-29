@@ -1,5 +1,5 @@
-#ifndef __Router_H // cambiar nombre
-#define __Router_H // cambiar nombre
+#ifndef __Barrier_H // cambiar nombre
+#define __Barrier_H // cambiar nombre
 
 /** include files **/
 #include <random>
@@ -26,11 +26,10 @@ class Barrier: public Atomic {
 	private:
 		int amountOfGates; // cantidad de gates totales
 		
-		std::bitset<10> gates;
+		std::bitset<10> gates; // fixed gates
 
 		int assignGate();
 
-		// const Port &in;
 		Port &out1 ;
 		Port &out2 ;
 		Port &out3 ;
@@ -51,7 +50,7 @@ class Barrier: public Atomic {
 		VTime elapsed;
 		// Time remaining to complete the last programmed Lifetime
 		VTime timeLeft;	
-};	// class Router
+};	// class Barrier
 
 
-#endif   //__Router_H 
+#endif   //__Barrier_H 

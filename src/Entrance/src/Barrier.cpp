@@ -11,7 +11,7 @@
 #include "distri.h"        // class Distribution
 #include "strutil.h"
 
-#include "Router.h"
+#include "Barrier.h"
 
 using namespace std;
 
@@ -42,9 +42,8 @@ Barrier::Barrier( const string &name ) :
 	out8(addOutputPort( "out8" ))
 	out9(addOutputPort( "out9" ))
 	out10(addOutputPort( "out10" ))
-
 {
-	
+	//TODO: init function
 }
 
 /*******************************************************************
@@ -66,16 +65,7 @@ Barrier::assignGate() {
 ********************************************************************/
 Model &Barrier::initFunction()
 {
-	// [(!) Initialize common variables]
-	this->elapsed  = VTime::Zero;
- 	this->timeLeft = VTime::Inf;
- 	// this->sigma = VTime::Inf; // stays in active state until an external event occurs;
- 	this->sigma    = VTime::Zero; // force an internal transition in t=0;
-
- 	// TODO: add init code here. (setting first state, etc)
- 	
- 	// set next transition
- 	holdIn( AtomicState::active, this->sigma  ) ;
+	gates.reset();
 	return *this ;
 }
 
@@ -97,10 +87,8 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 
 	if( msg.port() == done )      // If a gate is done
 	{
-		elements().pop_front() ;  // Eliminar solicitud actual de cola
-		if( !elements().empty() )
-			holdIn( AtomicState::active, preparationTime );
-			// Programar siguiente envío
+		this->gates[msg.value()] = false;
+		passivate();
 	}
 
 	return *this;
@@ -113,28 +101,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 ********************************************************************/
 Model &Barrier::internalFunction( const InternalMessage &msg )
 {
-
-	//[(!) update common variables]	
-	this->sigma    = nextChange();	
-	this->elapsed  = msg.time()-lastChange();	
- 	this->timeLeft = this->sigma - this->elapsed; 
-
-#if VERBOSE
-	PRINT_TIMES("dint");
-#endif
-
-	if (scheudledTrucks..size() == 0) {
-		scheudleTrucksForTheDay();
-		int current_hours = msg.time().hours();
-		int hoursToNextAwake =  24 - (current_hours%24) + startHour
-		VTime targetAwake = VTime(current_hours+hoursToNextAwake,0,0,0);
-		this->sigma = targetAwake-msg.time()
-	}
-	else {
-		this->sigma = scheudledTrucks.pop_front();
-	}
-
-	holdIn( AtomicState::active, this->sigma );
+	passivate();
 	return *this;
 }
 
@@ -149,9 +116,4 @@ Model &Barrier::outputFunction( const CollectMessage &msg )
 	sendOutput( msg.time(), out, 0) ;
 	return *this;
 
-}
-
-Barrier::~Barrier()
-{
-	//TODO: add destruction code here. Free distribution memory, etc. 
 }
