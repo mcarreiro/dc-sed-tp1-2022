@@ -6,6 +6,7 @@
 #include "atomic.h"  // class Atomic
 #include "VTime.h"
 #include <list>
+#include <string>
 
 #define ATOMIC_MODEL_NAME "Barrier" 
 
@@ -14,7 +15,6 @@
 class Barrier: public Atomic {
 	public:
 		Barrier( const string &name = ATOMIC_MODEL_NAME ); // Default constructor
-		~Barrier(); // Destructor
 		virtual string className() const {return ATOMIC_MODEL_NAME;}
 	
 	protected:
@@ -25,7 +25,9 @@ class Barrier: public Atomic {
 	
 	private:
 		int amountOfGates; // cantidad de gates totales
-		
+		int gateAssigned; // cantidad de gates totales
+		value_ptr next;
+		VTime preparationTime;
 		std::bitset<10> gates; // fixed gates
 
 		int assignGate();
@@ -40,16 +42,19 @@ class Barrier: public Atomic {
 		Port &out8 ;
 		Port &out9 ;
 		Port &out10 ;
+		Port &done ;
 
 		const Port &in;
-		const Port &done;
-
-		// Lifetime programmed since the last state transition to the next planned internal transition.
-		VTime sigma;
-		// Time elapsed since the last state transition until now
-		VTime elapsed;
-		// Time remaining to complete the last programmed Lifetime
-		VTime timeLeft;	
+		const Port &done1;
+		const Port &done2;
+		const Port &done3;
+		const Port &done4;
+		const Port &done5;
+		const Port &done6;
+		const Port &done7;
+		const Port &done8;
+		const Port &done9;
+		const Port &done10;
 };	// class Barrier
 
 
