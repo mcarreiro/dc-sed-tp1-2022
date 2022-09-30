@@ -1,2 +1,11 @@
 local
 .DS_STORE
+src/bin/cd++
+*.o
+*.a
+*.so
+*.dep
+*.dep.*
+*.log*
+*.out*
+bin/
