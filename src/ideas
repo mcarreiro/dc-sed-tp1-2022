@@ -1,0 +1,13 @@
+Barrier Info
+La cantidad de gates va a ser fija
+Necesita saber las puertas abiertas y todas empiezan abiertas
+Tiene un puerto IN que recibe un vehículo a asignar
+Se guarda el vehículo a asignar
+Si tiene puertas asignadas, le manda un mensaje por el puerto Gate_N
+
+
+TODO
+1) Velocidad de la gate (cant paquetes, tipo, cant de workers, pre-orden)
+2) Distribución de entrada (lineal, campana)
+3) Costos
+4) 
