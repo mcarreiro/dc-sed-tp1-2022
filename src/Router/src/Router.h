@@ -42,6 +42,7 @@ class Router: public Atomic {
 
 		// va ser una lista de sigmas indicando la espera al siguiente
 		list<VTime> scheudledTrucks;
+		int id; // para incrementar con cada camion
 		
 
 		// const Port &in;
