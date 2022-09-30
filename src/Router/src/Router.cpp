@@ -37,6 +37,7 @@ Router::Router( const string &name ) :
 {
 	startHour = 7;
 	endHour = 23;
+	id = 0;
 	dist = Distribution::create("normal");
 	MASSERT( dist ) ;
 	dist->setVar( 0,0 ) ; // mean
@@ -60,7 +61,7 @@ Router::Router( const string &name ) :
 
 void Router::scheudleTrucksForTheDay() {
 	// TODO cambiar estas tres a parametros ?
-	int n = 5; 
+	int n = 20; 
 	float mean = (endHour+startHour)/2.0;
 	float stdev = 2.0;
 
@@ -102,11 +103,12 @@ Model &Router::initFunction()
 {
 	// [(!) Initialize common variables]
 	this->elapsed  = VTime::Zero;
- 	this->timeLeft = VTime(startHour,0,0,0);
- 	// this->sigma = VTime::Inf; // stays in active state until an external event occurs;
- 	this->sigma    = VTime(startHour,0,0,0); // force an internal transition in t=0;
-
- 	// TODO: add init code here. (setting first state, etc)
+ 	
+	this->sigma    = VTime(startHour,0,0,0); // force an internal transition in t=0;
+	this->sigma = this->sigma + scheudledTrucks.front();
+	scheudledTrucks.pop_front();
+ 	
+	this->timeLeft = this->sigma;
  	
  	// set next transition
  	holdIn( AtomicState::active, this->sigma  ) ;
@@ -150,15 +152,16 @@ Model &Router::internalFunction( const InternalMessage &msg )
 		scheudledTrucks.pop_front();
 		scheudledTrucks.push_front(targetAwake) ;
 
-		cout << "hoursToNextAwake " << hoursToNextAwake << endl;
-		cout << "end day wait " << targetAwake.asString() << endl;
-		cout << "wake up at " <<  VTime(hoursToNextAwake+current_hours,0,0,0).asString() << endl;
-		cout << "now " <<  msg.time().asString() << endl;
+		// cout << "hoursToNextAwake " << hoursToNextAwake << endl;
+		// cout << "end day wait " << targetAwake.asString() << endl;
+		// cout << "wake up at " <<  VTime(hoursToNextAwake+current_hours,0,0,0).asString() << endl;
+		// cout << "now " <<  msg.time().asString() << endl;
 		//this->sigma = VTime(8,0,0,0);
 	}
 
 	this->sigma = scheudledTrucks.front();
 	scheudledTrucks.pop_front();
+	id++;
 
 	this->elapsed  = VTime::Zero;
  	this->timeLeft = this->sigma - this->elapsed; 
@@ -177,9 +180,13 @@ Model &Router::outputFunction( const CollectMessage &msg )
 {
 	// TODO cambiar para que escupa camiones
 	int hola = getPacketsInTruck(4.0);
-	//Tuple<int> t = Tuple<int>(0,0,0);
-	cout << "envio " << hola << endl;
-	sendOutput( msg.time(), out, hola) ;
+	int nA = (int) (*distPacketA).get();
+	int nB = (int) (*distPacketB).get();
+	int nC = (int) (*distPacketC).get();
+
+	Tuple<Real> out_value{id, nA, nB, nC};
+	cout << "envio " << out_value << endl;
+	sendOutput( msg.time(), out, out_value) ;
 	return *this;
 
 }
