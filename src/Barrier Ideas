@@ -1,5 +1,0 @@
-La cantidad de gates va a ser fija
-Necesita saber las puertas abiertas y todas empiezan abiertas
-Tiene un puerto IN que recibe un vehículo a asignar
-Se guarda el vehículo a asignar
-Si tiene puertas asignadas, le manda un mensaje por el puerto Gate_N
