@@ -48,7 +48,9 @@ Manager::Manager( const string &name ) :
 	preparationTime( 0, 0, 0, 1 )
 {
 	this->amountOfGates = 10;
-	this->function=0;
+	this->function=0; //0 mean open for a bit more, 1 means more workers
+	this->threshold=25;
+	this->isEmergencyData = false;
 }
 
 /*******************************************************************
@@ -63,8 +65,13 @@ int Manager::act() {
 * Function Name: isEmergency
 * Description: decide if input throughput is an emergency
 ********************************************************************/
-bool Manager::isEmergency(int throughput){
-	return false;
+bool Manager::isEmergency(Real throughput){
+	if (throughput > this->threshold){
+		this->isEmergencyData = true;
+	}else{
+		this->isEmergencyData = false;
+	}
+	return this->isEmergencyData;
 }
 
 /*******************************************************************
@@ -85,7 +92,7 @@ Model &Manager::externalFunction( const ExternalMessage &msg )
 {
 	if( msg.port() == in )        // If a new vehicle is ready to be served 
 	{
-		if (isEmergency(msg.value()) > -1){ // if there is an emergency
+		if (isEmergency(Real::from_value(msg.value()))){ // if there is an emergency
 			holdIn( AtomicState::active, preparationTime ); // program to act on gates
 		}
 	}
@@ -110,17 +117,19 @@ Model &Manager::internalFunction( const InternalMessage &msg )
 ********************************************************************/
 Model &Manager::outputFunction( const CollectMessage &msg )
 {	
-	Tuple<Real> out_value{act()};
-	sendOutput( msg.time(), out1, out_value) ;
-	sendOutput( msg.time(), out2, out_value) ;
-	sendOutput( msg.time(), out3, out_value) ;
-	sendOutput( msg.time(), out4, out_value) ;
-	sendOutput( msg.time(), out5, out_value) ;
-	sendOutput( msg.time(), out6, out_value) ;
-	sendOutput( msg.time(), out7, out_value) ;
-	sendOutput( msg.time(), out8, out_value) ;
-	sendOutput( msg.time(), out9, out_value) ;
-	sendOutput( msg.time(), out10, out_value) ;
+	if (this->isEmergencyData){
+		Tuple<Real> out_value{act()};
+		sendOutput( msg.time(), out1, out_value) ;
+		sendOutput( msg.time(), out2, out_value) ;
+		sendOutput( msg.time(), out3, out_value) ;
+		sendOutput( msg.time(), out4, out_value) ;
+		sendOutput( msg.time(), out5, out_value) ;
+		sendOutput( msg.time(), out6, out_value) ;
+		sendOutput( msg.time(), out7, out_value) ;
+		sendOutput( msg.time(), out8, out_value) ;
+		sendOutput( msg.time(), out9, out_value) ;
+		sendOutput( msg.time(), out10, out_value) ;
+	}
 	return *this;
 
 }

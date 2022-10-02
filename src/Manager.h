@@ -8,14 +8,14 @@
 #include <list>
 #include <string>
 
-#define ATOMIC_MODEL_NAME "Manager" 
+#define MANAGER_ATOMIC_MODEL_NAME "Manager" 
 
 
 /** declarations **/
 class Manager: public Atomic {
 	public:
-		Manager( const string &name = ATOMIC_MODEL_NAME ); // Default constructor
-		virtual string className() const {return ATOMIC_MODEL_NAME;}
+		Manager( const string &name = MANAGER_ATOMIC_MODEL_NAME ); // Default constructor
+		virtual string className() const {return MANAGER_ATOMIC_MODEL_NAME;}
 	
 	protected:
 		Model &initFunction();	
@@ -27,10 +27,12 @@ class Manager: public Atomic {
 		int amountOfGates; // cantidad de gates totales
 		int function; //0 is buff, 1 is open gates
 		VTime preparationTime;
+		int threshold;
+		bool isEmergencyData;
 		std::bitset<10> gates; // fixed gates
 
 		int act();
-		bool isEmergency(int throughput);
+		bool isEmergency(Real throughput);
 
 		Port &out1 ;
 		Port &out2 ;

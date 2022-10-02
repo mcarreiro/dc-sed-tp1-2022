@@ -13,6 +13,7 @@ link : out8@barrier out8_port
 link : out9@barrier out9_port
 link : out10@barrier out10_port
 link : done@barrier done@queue
+link : done@barrier solved@transducer
 link : in_port in@queue
 link : in_port arrived@transducer
 link : out@queue in@barrier

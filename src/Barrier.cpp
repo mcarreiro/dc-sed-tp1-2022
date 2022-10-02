@@ -95,7 +95,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 {
 	if( msg.port() == in )        // If a new vehicle is ready to be served 
 	{
-		this->next = msg.value(); // TODO: check if this value is not null
+		this->next = Real::from_value(msg.value()); // TODO: check if this value is not null
 		this->gateAssigned = assignGate();
 		if (gateAssigned > -1){ // if there is an available gate
 			holdIn( AtomicState::active, preparationTime ); // program to output
@@ -104,7 +104,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 
 	if( msg.port() == done1 )      // If a gate is done
 	{
-		if (this->next != NULL){
+		if (this->next >= 0){
 			holdIn( AtomicState::active, preparationTime ); // program to output
 			this->gateAssigned = 0;
 		}else{
@@ -114,7 +114,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	}
 	if( msg.port() == done2 )      // If a gate is done
 	{
-		if (this->next != NULL){
+		if (this->next >= 0){
 			holdIn( AtomicState::active, preparationTime ); // program to output
 			this->gateAssigned = 1;
 		}else{
@@ -124,7 +124,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	}
 	if( msg.port() == done3 )      // If a gate is done
 	{
-		if (this->next != NULL){
+		if (this->next >= 0){
 			holdIn( AtomicState::active, preparationTime ); // program to output
 			this->gateAssigned = 1;
 		}else{
@@ -134,7 +134,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	}
 	if( msg.port() == done4 )      // If a gate is done
 	{	
-		if (this->next != NULL){
+		if (this->next >= 0){
 			holdIn( AtomicState::active, preparationTime ); // program to output
 			this->gateAssigned = 1;
 		}else{
@@ -144,7 +144,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	}
 	if( msg.port() == done5 )      // If a gate is done
 	{
-		if (this->next != NULL){
+		if (this->next >= 0){
 			holdIn( AtomicState::active, preparationTime ); // program to output
 			this->gateAssigned = 1;
 		}else{
@@ -154,7 +154,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	}
 	if( msg.port() == done6 )      // If a gate is done
 	{
-		if (this->next != NULL){
+		if (this->next >= 0){
 			holdIn( AtomicState::active, preparationTime ); // program to output
 			this->gateAssigned = 1;
 		}else{
@@ -164,7 +164,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	}
 	if( msg.port() == done7 )      // If a gate is done
 	{
-		if (this->next != NULL){
+		if (this->next >= 0){
 			holdIn( AtomicState::active, preparationTime ); // program to output
 			this->gateAssigned = 1;
 		}else{
@@ -174,7 +174,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	}
 	if( msg.port() == done8 )      // If a gate is done
 	{
-		if (this->next != NULL){
+		if (this->next >= 0){
 			holdIn( AtomicState::active, preparationTime ); // program to output
 			this->gateAssigned = 1;
 		}else{
@@ -184,7 +184,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	}
 	if( msg.port() == done9 )      // If a gate is done
 	{
-		if (this->next != NULL){
+		if (this->next >= 0){
 			holdIn( AtomicState::active, preparationTime ); // program to output
 			this->gateAssigned = 1;
 		}else{
@@ -194,7 +194,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	}
 	if( msg.port() == done10 )      // If a gate is done
 	{
-		if (this->next != NULL){
+		if (this->next >= 0){
 			holdIn( AtomicState::active, preparationTime ); // program to output
 			this->gateAssigned = 1;
 		}else{
@@ -225,7 +225,7 @@ Model &Barrier::internalFunction( const InternalMessage &msg )
 Model &Barrier::outputFunction( const CollectMessage &msg )
 {	
 	//Tuple<Real> out_value{Real(1), 0, 1};
-	Real out_value = Real.from_value(this->next)
+	Real out_value = Real::from_value(this->next);
 	if( this->gateAssigned == 0 )      //assigned gate
 	{
 		sendOutput( msg.time(), out1, out_value) ;
@@ -267,7 +267,7 @@ Model &Barrier::outputFunction( const CollectMessage &msg )
 		sendOutput( msg.time(), out10, out_value) ;
 	}
 	sendOutput( msg.time(), done, out_value) ;
-	this->next = NULL;
+	this->next = -1;
 	return *this;
 
 }

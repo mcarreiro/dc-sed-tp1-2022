@@ -8,14 +8,14 @@
 #include <list>
 #include <string>
 
-#define ATOMIC_MODEL_NAME "Barrier" 
+#define BARRIER_ATOMIC_MODEL_NAME "Barrier" 
 
 
 /** declarations **/
 class Barrier: public Atomic {
 	public:
-		Barrier( const string &name = ATOMIC_MODEL_NAME ); // Default constructor
-		virtual string className() const {return ATOMIC_MODEL_NAME;}
+		Barrier( const string &name = BARRIER_ATOMIC_MODEL_NAME ); // Default constructor
+		virtual string className() const {return BARRIER_ATOMIC_MODEL_NAME;}
 	
 	protected:
 		Model &initFunction();	
@@ -26,7 +26,7 @@ class Barrier: public Atomic {
 	private:
 		int amountOfGates; // cantidad de gates totales
 		int gateAssigned; // cantidad de gates totales
-		value_ptr next;
+		Real next;
 		VTime preparationTime;
 		std::bitset<10> gates; // fixed gates
 
