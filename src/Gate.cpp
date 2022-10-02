@@ -54,7 +54,7 @@ Gate::Gate( const string &name ) :
 	dist->setVar( 1,1 ) ; // var
 	currentState = UNAVAILABLE;
  	currentTruck = Tuple<Real>();
-	messageForBarrier = NO_MESSAGE; // se asume que la barrier toma las gates como cerradas al principio
+	messageForBarrier = OPEN; // se asume que la barrier toma las gates como cerradas al principio
 
 	lastManagerWakeUp = VTime::Zero;
 }
@@ -284,42 +284,57 @@ Model &Gate::externalFunction( const ExternalMessage &msg )
 		// count_B
 		// count_C
 
-		this->sigma    = proccesingTimeTruck(msg.time(), truck);	
+
+		VTime proccesingTime = proccesingTimeTruck(msg.time(), truck);	
+
+		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + proccesingTime).asSecs(), truck[3],truck[4], truck[5]};
+		currentTruck = out_value;
+		
+		this->sigma    = proccesingTime;
 		this->elapsed  = VTime::Zero;
 		this->timeLeft = this->sigma - this->elapsed; 
 
-		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + this->sigma).asSecs(), truck[3],truck[4], truck[5]};
-		currentTruck = out_value;
 		currentState = BUSY;
-		messageForBarrier = NO_MESSAGE;
+		if (isActivePeriod(msg.time()+proccesingTime)) {
+			messageForBarrier = OPEN;
+		}
+		else {
+			messageForBarrier = NO_MESSAGE;
+		}
 	}
 	else if (msg.port() == fromManager) {
 		// ignoro al manager si no estoy cerrado
 		if (currentState == FREE) {
 			currentTruck = Tuple<Real>();
-			messageForBarrier = NO_MESSAGE;
+			messageForBarrier = CLOSED;
 			this->sigma    = nextChange();	
 			this->elapsed  = msg.time()-lastChange();	
 			this->timeLeft = this->sigma - this->elapsed; 		}
 		else if (currentState == BUSY) {
-			messageForBarrier = NO_MESSAGE;
+
+			if (isActivePeriod(msg.time()+nextChange())) {
+				messageForBarrier = OPEN;
+			}
+			else {
+				messageForBarrier = NO_MESSAGE;
+			}
+
 			this->sigma    = nextChange();	
 			this->elapsed  = msg.time()-lastChange();	
 			this->timeLeft = this->sigma - this->elapsed; 
 		}
 		else if (currentState == UNAVAILABLE) {
-			currentState = FREE;
-			messageForBarrier = OPEN;
 			onManagerWakeUp(msg.time());
-			this->sigma = wakeUpAtSigma(msg.time(),endHour );
+
+			this->sigma = VTime::Zero;
 			this->elapsed  = VTime::Zero;
 			this->timeLeft = this->sigma - this->elapsed; 
+			messageForBarrier = OPEN;
 		}
 	}
-	
-#if VERBOSE
-	PRINT_TIMES("dext");
-#endif
+
+	holdIn( AtomicState::active, this->sigma  ) ;
+
 	
 	return *this ;
 }
@@ -342,39 +357,37 @@ Model &Gate::internalFunction( const InternalMessage &msg )
 		currentTruck = Tuple<Real>();
 		currentState = FREE;
 		// cout << "me abro " << msg.time().asString() << endl;
-		messageForBarrier = OPEN;
 		this->sigma = wakeUpAtSigma(msg.time(),endHour );
+		messageForBarrier = CLOSED;
 	}
 
 	else if (currentState == BUSY) {
+		currentTruck = Tuple<Real>();
 		if (isActivePeriod(msg.time())) {
 			currentState = FREE;
-			messageForBarrier = OPEN;
 			this->sigma = wakeUpAtSigma(msg.time(),endHour );
+			messageForBarrier = CLOSED;
 		}
 		else {
 			currentState = UNAVAILABLE;
-			// no envio mensaje para barrier porque asumo que ya me tiene en close
-			messageForBarrier = NO_MESSAGE;
 			resetActivePeriod();
 			this->sigma = wakeUpAtSigma(msg.time(),startHour );
+			messageForBarrier = OPEN;
 		}
 	}
 
 	else if (currentState == FREE ) {
 		resetActivePeriod();
 		currentTruck = Tuple<Real>();
-		// puede que tenga que seguir activo porque me activo el manager y ahora estoy activo normal
+
 		if (isActivePeriod(msg.time())) {
 			this->sigma =  wakeUpAtSigma(msg.time(),endHour );
-			messageForBarrier = NO_MESSAGE;
+			messageForBarrier = CLOSED;
 		}
 		else{
-			// cout << "me cierro " << msg.time().asString() << endl;
-
 			currentState = UNAVAILABLE;
-			messageForBarrier = CLOSED;
 			this->sigma =  wakeUpAtSigma(msg.time(),startHour );
+			messageForBarrier = OPEN;
 		}
 	}
 
@@ -400,11 +413,15 @@ Model &Gate::outputFunction( const CollectMessage &msg )
 	if (messageForBarrier == OPEN) {
 		int send = 0;
 		sendOutput( msg.time(), toBarrier, send) ;
+		cout << "me abro " << msg.time().asString() << endl;
+
 		
 	}
 	else if (messageForBarrier == CLOSED) {
 		int send = 1;
 		sendOutput( msg.time(), toBarrier, send) ;
+		cout << "me cierro " << msg.time().asString() << endl;
+
 	}
 
 
