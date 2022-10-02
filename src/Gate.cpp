@@ -65,6 +65,12 @@ bool Gate::isActivePeriod(VTime now) {
 	return startHour <= currentHours && currentHours < endHour;
 }
 
+bool Gate::isBaseActivePeriod(VTime now) {
+	int currentHours =(int) (now.asSecs()/3600);
+	currentHours = currentHours % 24;
+	return baseStartHour <= currentHours && currentHours < baseEndHour;
+}
+
 int Gate::workersNow(VTime now) {
 	int currentHours =(int) (now.asSecs()/3600);
 	currentHours = currentHours % 24;
@@ -312,6 +318,8 @@ Model &Gate::externalFunction( const ExternalMessage &msg )
 			this->timeLeft = this->sigma - this->elapsed; 		}
 		else if (currentState == BUSY) {
 
+			refreshActivePeriod(msg.time()+nextChange());
+
 			if (isActivePeriod(msg.time()+nextChange())) {
 				messageForBarrier = OPEN;
 			}
@@ -356,9 +364,15 @@ Model &Gate::internalFunction( const InternalMessage &msg )
 	if (currentState == UNAVAILABLE) {
 		currentTruck = Tuple<Real>();
 		currentState = FREE;
-		// cout << "me abro " << msg.time().asString() << endl;
 		this->sigma = wakeUpAtSigma(msg.time(),endHour );
-		messageForBarrier = CLOSED;
+		
+		if (isBaseActivePeriod(msg.time() + this->sigma)) {
+			messageForBarrier = NO_MESSAGE;
+		}
+		else {
+			messageForBarrier = CLOSED;
+		}
+
 	}
 
 	else if (currentState == BUSY) {
@@ -413,20 +427,18 @@ Model &Gate::outputFunction( const CollectMessage &msg )
 	if (messageForBarrier == OPEN) {
 		int send = 0;
 		sendOutput( msg.time(), toBarrier, send) ;
-		cout << "me abro " << msg.time().asString() << endl;
 
 		
 	}
 	else if (messageForBarrier == CLOSED) {
 		int send = 1;
 		sendOutput( msg.time(), toBarrier, send) ;
-		cout << "me cierro " << msg.time().asString() << endl;
 
 	}
 
 
 	// si termino un camion lo outputeo
-	if ( (currentState == FREE or currentState == UNAVAILABLE) and currentTruck.size() != 0) {
+	if ( (currentState == BUSY) and currentTruck.size() != 0) {
 		sendOutput( msg.time(), out, currentTruck) ;
 	}
 	return *this;

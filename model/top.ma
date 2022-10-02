@@ -5,6 +5,7 @@ out : out
 link : out@router in@queue
 link : out@router arrived@transducer
 link : out@queue in@barrier
+link : throughput@transducer in@manager
 
 link : done@barrier done@queue
 link : done@barrier solved@transducer
@@ -40,7 +41,7 @@ link : out@gate6 out
 link : out@gate7 out
 link : out@gate8 out
 link : out@gate9 out
-link : out0@gate10 out
+link : out@gate10 out
 
 link : out1@manager fromManager@gate1
 link : out2@manager fromManager@gate2

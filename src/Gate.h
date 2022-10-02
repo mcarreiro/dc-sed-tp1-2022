@@ -51,6 +51,8 @@ class Gate: public Atomic {
 		int workersNow(VTime now);
 
 		bool isActivePeriod(VTime now);
+		bool isBaseActivePeriod(VTime now);
+
 		VTime wakeUpAtSigma(VTime now, int hourOfDay);
 				
 		Distribution *dist ;
