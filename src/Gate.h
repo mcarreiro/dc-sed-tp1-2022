@@ -7,7 +7,7 @@
 #include "VTime.h"
 #include <list>
 
-#define ATOMIC_MODEL_NAME "Gate" // cambiar nombre
+#define GATE_ATOMIC_MODEL_NAME "Gate" // cambiar nombre
 
 /** forward declarations **/
 //TODO: add distribution class declaration here if needed
@@ -21,9 +21,9 @@ enum BarrierUpdate {OPEN, CLOSED, NO_MESSAGE};
 /** declarations **/
 class Gate: public Atomic {
 	public:
-		Gate( const string &name = ATOMIC_MODEL_NAME ); // Default constructor
+		Gate( const string &name = GATE_ATOMIC_MODEL_NAME ); // Default constructor
 		~Gate(); // Destructor
-		virtual string className() const {return ATOMIC_MODEL_NAME;}
+		virtual string className() const {return GATE_ATOMIC_MODEL_NAME;}
 	
 	protected:
 		Model &initFunction();	

@@ -7,7 +7,7 @@
 #include "VTime.h"
 #include <list>
 
-#define ATOMIC_MODEL_NAME "Router" // cambiar nombre
+#define ROUTER_ATOMIC_MODEL_NAME "Router" // cambiar nombre
 
 /** forward declarations **/
 //TODO: add distribution class declaration here if needed
@@ -18,9 +18,9 @@ class Distribution ;
 /** declarations **/
 class Router: public Atomic {
 	public:
-		Router( const string &name = ATOMIC_MODEL_NAME ); // Default constructor
+		Router( const string &name = ROUTER_ATOMIC_MODEL_NAME ); // Default constructor
 		~Router(); // Destructor
-		virtual string className() const {return ATOMIC_MODEL_NAME;}
+		virtual string className() const {return ROUTER_ATOMIC_MODEL_NAME;}
 	
 	protected:
 		Model &initFunction();	
