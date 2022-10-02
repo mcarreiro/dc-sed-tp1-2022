@@ -15,7 +15,8 @@
 class Distribution ;
 //class Tuple<int>;
 
-enum GateState {FREE, BUSY, UNAVAILABLE}
+enum GateState {FREE, BUSY, UNAVAILABLE};
+enum BarrierUpdate {OPEN, CLOSED, NO_MESSAGE};
 
 /** declarations **/
 class Gate: public Atomic {
@@ -31,17 +32,24 @@ class Gate: public Atomic {
 		Model &outputFunction( const CollectMessage & );
 	
 	private:
-		int startHour; // hora del dia donde comienzan activo
-		int endHour; // hora del dia donde termina activo
+		int baseStartHour; //  hora del dia donde comienzan activo
+		int baseEndHour; //  hora del dia donde termina activo
+		int startHour; // hora del dia donde comienzan activo actual
+		int endHour; // hora del dia donde termina activo actual
+		void refreshActivePeriod(VTime now);
+		void resetActivePeriod();
+		void onManagerWakeUp(VTime now);
 
 		VTime proccesingTimePacketA();
 		VTime proccesingTimePacketB();
 		VTime proccesingTimePacketC();
+		VTime proccesingTimePacket(int type);
+
 		VTime proccesingTimeTruck(VTime now, Tuple<Real> truck);
 		int workersNow(VTime now);
 
 		bool isActivePeriod(VTime now);
-		VTime wakeUpSigmaAt(VTime now, int hourOfDay);
+		VTime wakeUpAtSigma(VTime now, int hourOfDay);
 				
 		Distribution *dist ;
 		Distribution &distribution()	{ return *dist; }
@@ -49,9 +57,13 @@ class Gate: public Atomic {
 		GateState currentState;
 		Tuple<Real> currentTruck;
 
+		BarrierUpdate messageForBarrier; // proximo mensaje a enviar a la barrera
+
 		const Port &fromBarrier;
 		Port &toBarrier ;
 		Port &out ;
+
+		const Port &fromManager;
 
 		// Lifetime programmed since the last state transition to the next planned internal transition.
 		VTime sigma;

@@ -31,11 +31,11 @@ class Router: public Atomic {
 	private:
 		int startHour; // hora del dia donde comienzan a llegar camiones
 		int endHour; // hora del dia donde dejan de llegar camiones
+		int meanPacketsPerDay;
+		
 		Distribution *dist ;
 		Distribution &distribution()	{ return *dist; }
 		void scheudleTrucksForTheDay();
-		int getPacketsInTruck(float probability); // usando una distribucion exponencial 
-		
 		Distribution *distPacketA;
 		Distribution *distPacketB; 
 		Distribution *distPacketC; 

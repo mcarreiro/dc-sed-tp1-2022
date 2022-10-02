@@ -10,6 +10,10 @@
 #include "tuple_value.h"
 #include "distri.h"        // class Distribution
 #include "strutil.h"
+#include <queue>
+#include <algorithm> 
+#include <vector>
+#include <functional>
 
 #include "Gate.h"
 
@@ -34,49 +38,136 @@ using namespace std;
 Gate::Gate( const string &name ) : 
 	Atomic( name ),
 	out(addOutputPort( "out" )),
-	out(addOutputPort( "toBarrier" )),
-	in(addInputPort( "fromBarrier" ))
+	toBarrier(addOutputPort( "toBarrier" )),
+	fromBarrier(addInputPort( "fromBarrier" )),
+	fromManager(addInputPort( "fromManager" ))
+
 {
-	startHour = 7;
-	endHour = 23;
+	baseStartHour = 9;
+	baseEndHour = 21;
+	startHour = baseStartHour;
+	endHour = baseEndHour;
+
 	dist = Distribution::create("normal");
 	MASSERT( dist ) ;
 	dist->setVar( 0,0 ) ; // mean
 	dist->setVar( 1,1 ) ; // var
 	currentState = UNAVAILABLE;
- 	currentTruck = NULL;
+ 	currentTruck = Tuple<Real>();
+	messageForBarrier = NO_MESSAGE; // se asume que la barrier toma las gates como cerradas al principio
 
 
 }
 
+bool Gate::isActivePeriod(VTime now) {
+	int currentHours =(int) (now.asSecs()/3600);
+	currentHours = currentHours % 24;
+	return startHour <= currentHours && currentHours < endHour;
+}
 
 int Gate::workersNow(VTime now) {
-	// TODO cambiar para que dependa del momento del dia
-	return 5;
+	int currentHours =(int) (now.asSecs()/3600);
+	currentHours = currentHours % 24;
+
+	int workers = 0;
+
+	// 2 workers turno maniana
+	// 2 workers turno noche
+	// cierto overlap turno maniana / turno noche
+
+
+	if (currentHours >= 9 && currentHours < 18) {
+		workers += 2;
+	}
+	if (currentHours >= 12 && currentHours < 21) {
+		workers += 2;
+	}
+
+	// 2 workers si estoy fuera de horario ?
+	if (currentHours >= endHour || currentHours < startHour) {
+		workers = 2;
+	}	
+	return workers;
 }
 
 
 VTime Gate::proccesingTimeTruck(VTime now, Tuple<Real> truck) {
 	int workers = workersNow(now);
-	// TODO cambiar
-	return VTime(2,0,0,0)
+
+	int nA = (int) stof(truck[3].asString());
+	int nB = (int) stof(truck[4].asString());
+	int nC = (int) stof(truck[5].asString());
+
+	vector<int> packetsToProccess;
+	packetsToProccess.insert(packetsToProccess.end(), nA, 1);
+	packetsToProccess.insert(packetsToProccess.end(), nB, 2);
+	packetsToProccess.insert(packetsToProccess.end(), nC, 3);
+
+	VTime res = VTime::Zero;
+	priority_queue <VTime, vector<VTime>, greater<VTime>> processing;
+	
+	for (int i = 0; i < min(workers, nA+nB+nC); i++) {
+		int packet = packetsToProccess.back();
+		packetsToProccess.pop_back();
+		processing.push(proccesingTimePacket(packet));
+	}
+
+	while (! processing.empty()) {
+
+		// sacamos el proximo y restamos del remaining time del resto 
+		priority_queue <VTime, vector<VTime>, greater<VTime>> temp;
+		VTime next = processing.top();
+		processing.pop();
+
+		while (! processing.empty()) {
+			temp.push(processing.top() - next);
+			processing.pop();
+		}
+		processing = temp;
+
+		// agregamos al tiempo total
+		res = res + next;
+
+		// si quedan paquetes por procesar agregamos uno mas por el worker desocupado
+		if (packetsToProccess.size() > 0) {
+			int packet = packetsToProccess.back();
+			packetsToProccess.pop_back();
+			processing.push(proccesingTimePacket(packet));
+		}
+
+	}
+
+	return res;
+
 
 }
 
 
-VTime Gate::wakeUpSigmaAt(VTime now, int hourOfDay) {
-	int hoursToNextAwake = (24 - (current_hours)%24) + hourOfDay;
+VTime Gate::wakeUpAtSigma(VTime now, int hourOfDay) {
+	int current_hours =(int) (now.asSecs()/3600);
+	int current_hours_mod = current_hours%24;
+	int hoursToNextAwake = 0;
+
+	// es hoy
+	if (hourOfDay > current_hours_mod ) {
+		hoursToNextAwake = hourOfDay - current_hours_mod;
+	}
+	// es maniana
+	else {
+		hoursToNextAwake = (24 - current_hours_mod) + hourOfDay;
+	}
+
 	VTime targetAwake = VTime(hoursToNextAwake+current_hours,0,0,0) - now;
 	return targetAwake;
 }
 
 
 VTime Gate::proccesingTimePacketA() {
-	float mean = 60; // un minuto
-	float std = 30; // mas menos 30 segundos
+	float mean = 20;
+	float std = 10; // mas menos 10 segundos
 
 	double seconds = 0;
-	while (seconds <= 0) {
+	while (seconds <= 1) {
 		double sample = distribution().get() * std + mean;
 		seconds = sample;
 	}
@@ -85,11 +176,11 @@ VTime Gate::proccesingTimePacketA() {
 }
 
 VTime Gate::proccesingTimePacketB() {
-	float mean = 60; // un minuto
-	float std = 30; // mas menos 30 segundos
+	float mean = 20;
+	float std = 10; 
 
 	double seconds = 0;
-	while (seconds <= 0) {
+	while (seconds <= 1) {
 		double sample = distribution().get() * std + mean;
 		seconds = sample;
 	}
@@ -97,16 +188,59 @@ VTime Gate::proccesingTimePacketB() {
 }
 
 VTime Gate::proccesingTimePacketC() {
-	float mean = 60; // un minuto
-	float std = 30; // mas menos 30 segundos
+	float mean = 20; 
+	float std = 60; 
 
 	double seconds = 0;
-	while (seconds <= 0) {
+	while (seconds <= 1) {
 		double sample = distribution().get() * std + mean;
 		seconds = sample;
 	}
 	return VTime(seconds);
 }
+
+VTime Gate::proccesingTimePacket(int type) {
+	switch (type) {
+		case 0:
+			return  proccesingTimePacketA();
+			break;
+		case 1:
+			return proccesingTimePacketB();
+			break;
+		case 2:
+			return proccesingTimePacketC();
+			break;
+	}
+
+	return VTime::Zero;
+
+}
+
+void Gate::onManagerWakeUp(VTime now) {
+	int current_hours = (int) (now.asSecs()/3600);
+	current_hours = current_hours%24;
+	startHour = current_hours;
+	endHour = startHour + 2; // abierto por 2 horas?
+	// notar que dependiendo en que momento me llamen puede ser entre 1 y 2 horas abierto
+}
+
+
+void Gate::resetActivePeriod() {
+	startHour = baseStartHour;
+	endHour = baseEndHour;
+}
+
+
+// si estoy en mi periodo de actividad normal, reconfiguro el actual al normal
+void Gate::refreshActivePeriod(VTime now) {
+	int currentHours =(int) (now.asSecs()/3600);
+	currentHours = currentHours%24;
+
+	if (baseStartHour <= currentHours && currentHours < baseEndHour) {
+		resetActivePeriod();
+	}
+}
+
 /*******************************************************************
 * Function Name: initFunction
 ********************************************************************/
@@ -114,7 +248,7 @@ Model &Gate::initFunction()
 {
 	// [(!) Initialize common variables]
 	this->elapsed  = VTime::Zero;
-	this->sigma    = VTime(startHour,0,0,0); // force an internal transition in t=0;
+	this->sigma    = VTime(startHour,0,0,0);
 	this->timeLeft = this->sigma;
 
  	// set next transition
@@ -128,14 +262,51 @@ Model &Gate::initFunction()
 ********************************************************************/
 Model &Gate::externalFunction( const ExternalMessage &msg )
 {
-	Tuple<Real> truck = msg.value()
-	currentTruck = truck;
-	this->sigma    = proccesingTimeTruck(msg.time(), truck);	
-	this->elapsed  = VTime::Zero;
- 	this->timeLeft = this->sigma - this->elapsed; 
+	// asumo que barrier no me manda mensajes si estoy closed
+	if (msg.port() == fromBarrier) {
+		Tuple<Real> truck = Tuple<Real>::from_value(msg.value());
+		currentTruck = truck;
+		// route_id
+		// arrival_date
+		// assigned_date
+		// exit_date
+		// count_A
+		// count_B
+		// count_C
 
-	currentState = BUSY;
+		this->sigma    = proccesingTimeTruck(msg.time(), truck);	
+		this->elapsed  = VTime::Zero;
+		this->timeLeft = this->sigma - this->elapsed; 
 
+		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + this->sigma).asSecs(), truck[3],truck[4], truck[5]};
+		currentTruck = out_value;
+		currentState = BUSY;
+		messageForBarrier = NO_MESSAGE;
+	}
+	else if (msg.port() == fromManager) {
+		// ignoro al manager si no estoy cerrado
+		if (currentState == FREE) {
+			currentTruck = Tuple<Real>();
+			messageForBarrier = NO_MESSAGE;
+			this->sigma    = nextChange();	
+			this->elapsed  = msg.time()-lastChange();	
+			this->timeLeft = this->sigma - this->elapsed; 		}
+		else if (currentState == BUSY) {
+			messageForBarrier = NO_MESSAGE;
+			this->sigma    = nextChange();	
+			this->elapsed  = msg.time()-lastChange();	
+			this->timeLeft = this->sigma - this->elapsed; 
+		}
+		else if (currentState == UNAVAILABLE) {
+			currentState = FREE;
+			messageForBarrier = OPEN;
+			onManagerWakeUp(msg.time());
+			this->sigma = wakeUpAtSigma(msg.time(),endHour );
+			this->elapsed  = VTime::Zero;
+			this->timeLeft = this->sigma - this->elapsed; 
+		}
+	}
+	
 #if VERBOSE
 	PRINT_TIMES("dext");
 #endif
@@ -150,6 +321,7 @@ Model &Gate::externalFunction( const ExternalMessage &msg )
 ********************************************************************/
 Model &Gate::internalFunction( const InternalMessage &msg )
 {
+	refreshActivePeriod(msg.time());
 
 	// UNAVAILABLE -> FREE (empezo el dia)
 	// BUSY -> FREE (termino truck)
@@ -157,27 +329,43 @@ Model &Gate::internalFunction( const InternalMessage &msg )
 	// FREE -> UNAVAILABLE (se acabo el dia)
 
 	if (currentState == UNAVAILABLE) {
-		currentTruck = NULL;
+		currentTruck = Tuple<Real>();
 		currentState = FREE;
-		this->sigma = wakeUpSigmaAt(msg.time(),endHour );
+		cout << "me abro " << msg.time().asString() << endl;
+		messageForBarrier = OPEN;
+		this->sigma = wakeUpAtSigma(msg.time(),endHour );
 	}
 
 	else if (currentState == BUSY) {
 		if (isActivePeriod(msg.time())) {
 			currentState = FREE;
-			this->sigma = wakeUpSigmaAt(msg.time(),endHour );
+			messageForBarrier = OPEN;
+			this->sigma = wakeUpAtSigma(msg.time(),endHour );
 		}
 		else {
 			currentState = UNAVAILABLE;
-			this->sigma = wakeUpSigmaAt(msg.time(),startHour );
+			// no envio mensaje para barrier porque asumo que ya me tiene en close
+			messageForBarrier = NO_MESSAGE;
+			resetActivePeriod();
+			this->sigma = wakeUpAtSigma(msg.time(),startHour );
 		}
 	}
 
 	else if (currentState == FREE ) {
-		currentTruck = NULL;
-		currentState = UNAVAILABLE;
-		this->sigma =  wakeUpSigmaAt(msg.time(),startHour );
+		resetActivePeriod();
+		currentTruck = Tuple<Real>();
+		// puede que tenga que seguir activo porque me activo el manager y ahora estoy activo normal
+		if (isActivePeriod(msg.time())) {
+			this->sigma =  wakeUpAtSigma(msg.time(),endHour );
+			messageForBarrier = NO_MESSAGE;
+		}
+		else{
+			cout << "me cierro " << msg.time().asString() << endl;
 
+			currentState = UNAVAILABLE;
+			messageForBarrier = CLOSED;
+			this->sigma =  wakeUpAtSigma(msg.time(),startHour );
+		}
 	}
 
 	this->elapsed  = VTime::Zero;
@@ -199,17 +387,19 @@ Model &Gate::outputFunction( const CollectMessage &msg )
 	// 0: estoy disponible
 	// 1: no estoy disponible
 
-	if (currentState == FREE) {
-		sendOutput( msg.time(), toBarrier, 0) ;
+	if (messageForBarrier == OPEN) {
+		int send = 0;
+		sendOutput( msg.time(), toBarrier, send) ;
 		
 	}
-	else {
-		sendOutput( msg.time(), toBarrier, 1) ;
+	else if (messageForBarrier == CLOSED) {
+		int send = 1;
+		sendOutput( msg.time(), toBarrier, send) ;
 	}
 
 
 	// si termino un camion lo outputeo
-	if ( (currentState == FREE or currentState == UNAVAILABLE) and currentTruck != NULL) {
+	if ( (currentState == FREE or currentState == UNAVAILABLE) and currentTruck.size() != 0) {
 		sendOutput( msg.time(), out, currentTruck) ;
 	}
 	return *this;
