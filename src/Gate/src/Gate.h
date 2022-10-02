@@ -40,6 +40,8 @@ class Gate: public Atomic {
 		void resetActivePeriod();
 		void onManagerWakeUp(VTime now);
 
+		VTime lastManagerWakeUp;
+
 		VTime proccesingTimePacketA();
 		VTime proccesingTimePacketB();
 		VTime proccesingTimePacketC();

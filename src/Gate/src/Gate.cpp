@@ -43,8 +43,8 @@ Gate::Gate( const string &name ) :
 	fromManager(addInputPort( "fromManager" ))
 
 {
-	baseStartHour = meanPacketsPerDay = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "startHour" ) );
-	baseEndHour = 	meanPacketsPerDay = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "endHour" ) );
+	baseStartHour = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "startHour" ) );
+	baseEndHour = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "endHour" ) );
 	startHour = baseStartHour;
 	endHour = baseEndHour;
 
@@ -56,7 +56,7 @@ Gate::Gate( const string &name ) :
  	currentTruck = Tuple<Real>();
 	messageForBarrier = NO_MESSAGE; // se asume que la barrier toma las gates como cerradas al principio
 
-
+	lastManagerWakeUp = VTime::Zero;
 }
 
 bool Gate::isActivePeriod(VTime now) {
@@ -220,15 +220,23 @@ void Gate::onManagerWakeUp(VTime now) {
 	int current_hours = (int) (now.asSecs()/3600);
 	current_hours = current_hours%24;
 	startHour = current_hours;
-	endHour = startHour + 2; // abierto por 2 horas?
+	lastManagerWakeUp = now;
+
+	// abierto por 2 horas?
+	// endHour = min(startHour + 2, 23); 
 	// TODO chequear el caso en el que lupea: Ej 23 + 2 -> 01
 	// notar que dependiendo en que momento me llamen puede ser entre 1 y 2 horas abierto
+	
+	// o seguimos abiertos hasta mi horario de cierre habitual?
+	endHour = baseEndHour; // esta linea es innecesaria pero la agrego por claridad
+
 }
 
 
 void Gate::resetActivePeriod() {
 	startHour = baseStartHour;
 	endHour = baseEndHour;
+	lastManagerWakeUp = VTime::Zero;
 }
 
 
@@ -236,8 +244,9 @@ void Gate::resetActivePeriod() {
 void Gate::refreshActivePeriod(VTime now) {
 	int currentHours =(int) (now.asSecs()/3600);
 	currentHours = currentHours%24;
+	bool inNextDay = (lastManagerWakeUp > VTime::Zero) && (VTime(24,0,0,0) >= (now - lastManagerWakeUp)) ;
 
-	if (baseStartHour <= currentHours && currentHours < baseEndHour) {
+	if (inNextDay || (baseStartHour <= currentHours && currentHours < baseEndHour)) {
 		resetActivePeriod();
 	}
 }

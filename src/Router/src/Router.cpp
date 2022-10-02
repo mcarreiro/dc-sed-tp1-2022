@@ -45,15 +45,15 @@ Router::Router( const string &name ) :
 
 	distPacketA = Distribution::create("poisson");
 	MASSERT( distPacketA ) ;
-	distPacketA->setVar( 0,100 ) ; // mean
+	distPacketA->setVar( 0,50 ) ; // mean
 
 	distPacketB = Distribution::create("poisson");
 	MASSERT( distPacketB ) ;
-	distPacketB->setVar( 0,100 ) ; // mean
+	distPacketB->setVar( 0,50 ) ; // mean
 
 	distPacketC = Distribution::create("poisson");
 	MASSERT( distPacketC ) ;
-	distPacketC->setVar( 0,100 ) ; // mean
+	distPacketC->setVar( 0,50 ) ; // mean
 
 
 	meanPacketsPerDay = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "meanPackets" ) );
