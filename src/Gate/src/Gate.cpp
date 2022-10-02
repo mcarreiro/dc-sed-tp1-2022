@@ -43,8 +43,8 @@ Gate::Gate( const string &name ) :
 	fromManager(addInputPort( "fromManager" ))
 
 {
-	baseStartHour = 9;
-	baseEndHour = 21;
+	baseStartHour = meanPacketsPerDay = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "startHour" ) );
+	baseEndHour = 	meanPacketsPerDay = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "endHour" ) );
 	startHour = baseStartHour;
 	endHour = baseEndHour;
 
@@ -221,6 +221,7 @@ void Gate::onManagerWakeUp(VTime now) {
 	current_hours = current_hours%24;
 	startHour = current_hours;
 	endHour = startHour + 2; // abierto por 2 horas?
+	// TODO chequear el caso en el que lupea: Ej 23 + 2 -> 01
 	// notar que dependiendo en que momento me llamen puede ser entre 1 y 2 horas abierto
 }
 
@@ -331,7 +332,7 @@ Model &Gate::internalFunction( const InternalMessage &msg )
 	if (currentState == UNAVAILABLE) {
 		currentTruck = Tuple<Real>();
 		currentState = FREE;
-		cout << "me abro " << msg.time().asString() << endl;
+		// cout << "me abro " << msg.time().asString() << endl;
 		messageForBarrier = OPEN;
 		this->sigma = wakeUpAtSigma(msg.time(),endHour );
 	}
@@ -360,7 +361,7 @@ Model &Gate::internalFunction( const InternalMessage &msg )
 			messageForBarrier = NO_MESSAGE;
 		}
 		else{
-			cout << "me cierro " << msg.time().asString() << endl;
+			// cout << "me cierro " << msg.time().asString() << endl;
 
 			currentState = UNAVAILABLE;
 			messageForBarrier = CLOSED;
