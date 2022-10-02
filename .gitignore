@@ -9,3 +9,4 @@ src/bin/cd++
 *.log*
 *.out*
 bin/
+.ipynb_checkpoints
