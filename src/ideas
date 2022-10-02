@@ -7,7 +7,14 @@ Si tiene puertas asignadas, le manda un mensaje por el puerto Gate_N
 
 
 TODO
-1) Velocidad de la gate (cant paquetes, tipo, cant de workers, pre-orden)
-2) Distribución de entrada (lineal, campana)
-3) Costos
-4) 
+1) Velocidad de la gate (cant paquetes, tipo, cant de workers, pre-orden, expertise) (done)
+2) Distribución de entrada (uniforme, gaussiana) (solo hicimos gaussiana, veamos)
+3) Costos = unidad de workers
+4) Modelo conceptual/formal (lunes)
+5) Distribución de workers y horarios de apertura (done)
+6) Manager (tincho)
+7) Mensaje con toda la info (con las fechas) (mati)
+8) Barrier con aviso de abertura y cierre de las gates en el puerto (tincho)
+9) Cantidad de paquetes por vehículo está entre 50 y 400. (dato)
+10) La distribución de tipos de paquetes simulamos algunas versiones entre hay más de algún tipo o menos
+11) Notebook (tincho)

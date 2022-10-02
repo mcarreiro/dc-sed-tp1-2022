@@ -8,6 +8,7 @@
 #include "parsimu.h" // ParallelMainSimulator::Instance().getParameter( ... )
 #include "real.h"
 #include "tuple_value.h"
+#include "real.h"
 #include "distri.h"        // class Distribution
 #include "strutil.h"
 
@@ -223,7 +224,8 @@ Model &Barrier::internalFunction( const InternalMessage &msg )
 ********************************************************************/
 Model &Barrier::outputFunction( const CollectMessage &msg )
 {	
-	Tuple<Real> out_value{Real(1), 0, 1};
+	//Tuple<Real> out_value{Real(1), 0, 1};
+	Real out_value = Real.from_value(this->next)
 	if( this->gateAssigned == 0 )      //assigned gate
 	{
 		sendOutput( msg.time(), out1, out_value) ;
