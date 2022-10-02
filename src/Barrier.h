@@ -7,6 +7,8 @@
 #include "VTime.h"
 #include <list>
 #include <string>
+#include <bitset>
+using namespace std;
 
 #define BARRIER_ATOMIC_MODEL_NAME "Barrier" 
 
@@ -28,7 +30,7 @@ class Barrier: public Atomic {
 		int gateAssigned; // cantidad de gates totales
 		Real next;
 		VTime preparationTime;
-		std::bitset<10> gates; // fixed gates
+		bitset<10> gates; // fixed gates
 
 		int assignGate();
 

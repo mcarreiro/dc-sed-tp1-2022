@@ -7,6 +7,7 @@
 #include "VTime.h"
 #include <list>
 #include <string>
+#include <bitset>
 
 #define MANAGER_ATOMIC_MODEL_NAME "Manager" 
 
