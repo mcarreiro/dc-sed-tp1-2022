@@ -43,25 +43,32 @@ Router::Router( const string &name ) :
 	dist->setVar( 0,0 ) ; // mean
 	dist->setVar( 1,1 ) ; // var
 
-	distPacketA = Distribution::create("exponential");
+	distPacketA = Distribution::create("poisson");
 	MASSERT( distPacketA ) ;
-	distPacketA->setVar( 0,5 ) ; // mean
+	distPacketA->setVar( 0,100 ) ; // mean
 
-	distPacketB = Distribution::create("exponential");
+	distPacketB = Distribution::create("poisson");
 	MASSERT( distPacketB ) ;
-	distPacketB->setVar( 0,5 ) ; // mean
+	distPacketB->setVar( 0,100 ) ; // mean
 
-	distPacketC = Distribution::create("exponential");
+	distPacketC = Distribution::create("poisson");
 	MASSERT( distPacketC ) ;
-	distPacketC->setVar( 0,5 ) ; // mean
+	distPacketC->setVar( 0,100 ) ; // mean
 
+
+	meanPacketsPerDay = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "meanPackets" ) );
 	scheudleTrucksForTheDay();
 }
 
 
 void Router::scheudleTrucksForTheDay() {
-	// TODO cambiar estas tres a parametros ?
-	int n = 20; 
+	// TODO cambiar para que media sea paametro de model
+	int n = 0;
+	while (n <= 0) {
+		double sample = distribution().get() * 20 + meanPacketsPerDay;
+		n = (int) sample;
+	} 
+
 	float mean = (endHour+startHour)/2.0;
 	float stdev = 2.0;
 
@@ -89,11 +96,6 @@ void Router::scheudleTrucksForTheDay() {
 }
 
 
-int Router::getPacketsInTruck(float probability) {
-	int res = (int) (*distPacketC).get();
-	return res;
-
-}
 
 
 /*******************************************************************
@@ -146,7 +148,6 @@ Model &Router::internalFunction( const InternalMessage &msg )
 		scheudleTrucksForTheDay();
 		int current_hours =(int) (msg.time().asSecs()/3600);
 		int hoursToNextAwake = (24 - (current_hours)%24) + startHour;
-		float inSeconds = (hoursToNextAwake)*3600;
 		
 		VTime targetAwake = VTime(hoursToNextAwake+current_hours,0,0,0) - msg.time()  + scheudledTrucks.front();
 		scheudledTrucks.pop_front();
@@ -178,14 +179,12 @@ Model &Router::internalFunction( const InternalMessage &msg )
 ********************************************************************/
 Model &Router::outputFunction( const CollectMessage &msg )
 {
-	// TODO cambiar para que escupa camiones
-	int hola = getPacketsInTruck(4.0);
 	int nA = (int) (*distPacketA).get();
 	int nB = (int) (*distPacketB).get();
 	int nC = (int) (*distPacketC).get();
 
-	Tuple<Real> out_value{id, nA, nB, nC};
-	cout << "envio " << out_value << endl;
+	Tuple<Real> out_value{id, msg.time().asSecs(), nA, nB, nC};
+
 	sendOutput( msg.time(), out, out_value) ;
 	return *this;
 
