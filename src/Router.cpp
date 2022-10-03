@@ -36,8 +36,8 @@ Router::Router( const string &name ) :
 	out(addOutputPort( "out" )),
 	outId(addOutputPort( "outId" ))
 {
-	startHour = 7;
-	endHour = 23;
+	startHour = 9;
+	endHour = 20;
 	id = 0;
 	dist = Distribution::create("normal");
 	MASSERT( dist ) ;
