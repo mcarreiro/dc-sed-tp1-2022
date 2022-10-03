@@ -111,7 +111,6 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	if( msg.port() == in )        // If a new vehicle is ready to be served 
 	{
 		Tuple<Real> truck = Tuple<Real>::from_value(msg.value());
-		cout << "externalFunction" << truck << endl;
 		this->next = truck;
 		this->gateAssigned = assignGate();
 		if (gateAssigned > -1){ // if there is an available gate
