@@ -26,13 +26,13 @@ class Manager: public Atomic {
 	
 	private:
 		int amountOfGates; // cantidad de gates totales
-		int function; //0 is buff, 1 is open gates
+		double function; //0 is buff, 1 is open gates
 		VTime preparationTime;
 		int threshold;
 		bool isEmergencyData;
 		std::bitset<10> gates; // fixed gates
 
-		int act();
+		double act();
 		bool isEmergency(Real throughput);
 
 		Port &out1 ;

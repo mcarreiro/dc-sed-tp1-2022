@@ -48,7 +48,7 @@ Manager::Manager( const string &name ) :
 	preparationTime( 0, 0, 0, 1 )
 {
 	this->amountOfGates = 10;
-	this->function=0; //0 mean open for a bit more, 1 means more workers
+	this->function=0.0; //0 mean open for a bit more, 1 means more workers
 	this->threshold=5;
 	this->isEmergencyData = false;
 }
@@ -57,7 +57,9 @@ Manager::Manager( const string &name ) :
 * Function Name: act
 * Description: decide what to send to the gates to act in an emergency
 ********************************************************************/
-int Manager::act() {
+double Manager::act() {
+	//0 mean open for a bit more
+	//1 means more workers
 	return this->function;
 }
 
@@ -66,7 +68,7 @@ int Manager::act() {
 * Description: decide if input throughput is an emergency
 ********************************************************************/
 bool Manager::isEmergency(Real throughput){
-	if (throughput > this->threshold){
+	if (throughput >= this->threshold){
 		this->isEmergencyData = true;
 	}else{
 		this->isEmergencyData = false;
@@ -118,7 +120,7 @@ Model &Manager::internalFunction( const InternalMessage &msg )
 Model &Manager::outputFunction( const CollectMessage &msg )
 {	
 	if (this->isEmergencyData){
-		Tuple<Real> out_value{act()};
+		Real out_value{act()}; 
 		sendOutput( msg.time(), out1, out_value) ;
 		sendOutput( msg.time(), out2, out_value) ;
 		sendOutput( msg.time(), out3, out_value) ;

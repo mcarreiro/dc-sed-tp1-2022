@@ -61,6 +61,7 @@ Barrier::Barrier( const string &name ) :
 {
 	this->amountOfGates = 10;
 	this->gateAssigned = 0;
+	this->empty = Tuple<Real>({Real(-1)});
 }
 
 /*******************************************************************
@@ -86,6 +87,19 @@ Model &Barrier::initFunction()
 	return *this ;
 }
 
+void Barrier::externalFunctionHelper( const ExternalMessage &msg, int i ){
+	if (this->next != this->empty && Real::from_value(msg.value()) == 0){ //tengo next y está disponible la gate
+		holdIn( AtomicState::active, preparationTime ); // program to output
+		this->gateAssigned = i;
+	}else if(Real::from_value(msg.value()) == 1){//no está disponible
+		this->gates[i] = true; // marco como no disponible
+		passivate();	
+	}else{ //esta disponible pero no tengo
+		this->gates[i] = false; // marco como disponible
+		passivate();
+	}
+}
+
 /*******************************************************************
 * Function Name: externalFunction
 * Description: This method executes when an external event is received.
@@ -95,7 +109,8 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 {
 	if( msg.port() == in )        // If a new vehicle is ready to be served 
 	{
-		this->next = Real::from_value(msg.value()); // TODO: check if this value is not null
+		Tuple<Real> truck = Tuple<Real>::from_value(msg.value());
+		this->next = truck;
 		this->gateAssigned = assignGate();
 		if (gateAssigned > -1){ // if there is an available gate
 			holdIn( AtomicState::active, preparationTime ); // program to output
@@ -104,103 +119,43 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 
 	if( msg.port() == done1 )      // If a gate is done
 	{
-		if (this->next >= 0){
-			holdIn( AtomicState::active, preparationTime ); // program to output
-			this->gateAssigned = 0;
-		}else{
-			this->gates[0] = false;
-			passivate();
-		}
+		externalFunctionHelper(msg, 0);
 	}
 	if( msg.port() == done2 )      // If a gate is done
 	{
-		if (this->next >= 0){
-			holdIn( AtomicState::active, preparationTime ); // program to output
-			this->gateAssigned = 1;
-		}else{
-			this->gates[1] = false;
-			passivate();
-		}
+		externalFunctionHelper(msg, 1);
 	}
 	if( msg.port() == done3 )      // If a gate is done
 	{
-		if (this->next >= 0){
-			holdIn( AtomicState::active, preparationTime ); // program to output
-			this->gateAssigned = 1;
-		}else{
-			this->gates[2] = false;
-			passivate();
-		}
+		externalFunctionHelper(msg, 2);
 	}
 	if( msg.port() == done4 )      // If a gate is done
 	{	
-		if (this->next >= 0){
-			holdIn( AtomicState::active, preparationTime ); // program to output
-			this->gateAssigned = 1;
-		}else{
-			this->gates[3] = false;
-			passivate();
-		}
+		externalFunctionHelper(msg, 3);
 	}
 	if( msg.port() == done5 )      // If a gate is done
 	{
-		if (this->next >= 0){
-			holdIn( AtomicState::active, preparationTime ); // program to output
-			this->gateAssigned = 1;
-		}else{
-			this->gates[4] = false;
-			passivate();
-		}
+		externalFunctionHelper(msg, 4);
 	}
 	if( msg.port() == done6 )      // If a gate is done
 	{
-		if (this->next >= 0){
-			holdIn( AtomicState::active, preparationTime ); // program to output
-			this->gateAssigned = 1;
-		}else{
-			this->gates[5] = false;
-			passivate();
-		}
+		externalFunctionHelper(msg, 5);
 	}
 	if( msg.port() == done7 )      // If a gate is done
 	{
-		if (this->next >= 0){
-			holdIn( AtomicState::active, preparationTime ); // program to output
-			this->gateAssigned = 1;
-		}else{
-			this->gates[6] = false;
-			passivate();
-		}
+		externalFunctionHelper(msg, 6);
 	}
 	if( msg.port() == done8 )      // If a gate is done
 	{
-		if (this->next >= 0){
-			holdIn( AtomicState::active, preparationTime ); // program to output
-			this->gateAssigned = 1;
-		}else{
-			this->gates[7] = false;
-			passivate();
-		}
+		externalFunctionHelper(msg, 7);
 	}
 	if( msg.port() == done9 )      // If a gate is done
 	{
-		if (this->next >= 0){
-			holdIn( AtomicState::active, preparationTime ); // program to output
-			this->gateAssigned = 1;
-		}else{
-			this->gates[8] = false;
-			passivate();
-		}
+		externalFunctionHelper(msg, 8);
 	}
 	if( msg.port() == done10 )      // If a gate is done
 	{
-		if (this->next >= 0){
-			holdIn( AtomicState::active, preparationTime ); // program to output
-			this->gateAssigned = 1;
-		}else{
-			this->gates[9] = false;
-			passivate();
-		}
+		externalFunctionHelper(msg, 9);
 	}
 
 	return *this;
@@ -224,50 +179,48 @@ Model &Barrier::internalFunction( const InternalMessage &msg )
 ********************************************************************/
 Model &Barrier::outputFunction( const CollectMessage &msg )
 {	
-	//Tuple<Real> out_value{Real(1), 0, 1};
-	Real out_value = Real::from_value(this->next);
 	if( this->gateAssigned == 0 )      //assigned gate
 	{
-		sendOutput( msg.time(), out1, out_value) ;
+		sendOutput( msg.time(), out1, this->next) ;
 	}
 	if( this->gateAssigned == 1 )      //assigned gate
 	{
-		sendOutput( msg.time(), out2, out_value) ;
+		sendOutput( msg.time(), out2, this->next) ;
 	}
 	if( this->gateAssigned == 2 )      //assigned gate
 	{
-		sendOutput( msg.time(), out3, out_value) ;
+		sendOutput( msg.time(), out3, this->next) ;
 	}
 	if( this->gateAssigned == 3 )      //assigned gate
 	{
-		sendOutput( msg.time(), out4, out_value) ;
+		sendOutput( msg.time(), out4, this->next) ;
 	}
 	if( this->gateAssigned == 4 )      //assigned gate
 	{
-		sendOutput( msg.time(), out5, out_value) ;
+		sendOutput( msg.time(), out5, this->next) ;
 	}
 	if( this->gateAssigned == 5 )      //assigned gate
 	{
-		sendOutput( msg.time(), out6, out_value) ;
+		sendOutput( msg.time(), out6, this->next) ;
 	}
 	if( this->gateAssigned == 6 )      //assigned gate
 	{
-		sendOutput( msg.time(), out7, out_value) ;
+		sendOutput( msg.time(), out7, this->next) ;
 	}
 	if( this->gateAssigned == 7 )      //assigned gate
 	{
-		sendOutput( msg.time(), out8, out_value) ;
+		sendOutput( msg.time(), out8, this->next) ;
 	}
 	if( this->gateAssigned == 8 )      //assigned gate
 	{
-		sendOutput( msg.time(), out9, out_value) ;
+		sendOutput( msg.time(), out9, this->next) ;
 	}
 	if( this->gateAssigned == 9 )      //assigned gate
 	{
-		sendOutput( msg.time(), out10, out_value) ;
+		sendOutput( msg.time(), out10, this->next) ;
 	}
-	sendOutput( msg.time(), done, out_value) ;
-	this->next = -1;
+	sendOutput( msg.time(), done, this->next[0]) ;
+	this->next = this->empty;
 	return *this;
 
 }

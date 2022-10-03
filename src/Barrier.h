@@ -28,11 +28,13 @@ class Barrier: public Atomic {
 	private:
 		int amountOfGates; // cantidad de gates totales
 		int gateAssigned; // cantidad de gates totales
-		Real next;
+		Tuple<Real> next;
+		Tuple<Real> empty;
 		VTime preparationTime;
 		bitset<10> gates; // fixed gates
 
 		int assignGate();
+		void externalFunctionHelper(const ExternalMessage &msg, int i);
 
 		Port &out1 ;
 		Port &out2 ;
