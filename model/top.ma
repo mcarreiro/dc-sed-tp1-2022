@@ -3,7 +3,7 @@ components : router@router barrier@barrier manager@manager queue@queue transduce
 out : out
 
 link : out@router in@queue
-link : out@router arrived@transducer
+link : outId@router arrived@transducer
 link : out@queue in@barrier
 link : throughput@transducer in@manager
 
@@ -54,10 +54,8 @@ link : out8@manager fromManager@gate8
 link : out9@manager fromManager@gate9
 link : out10@manager fromManager@gate10
 
-
-
 [router]
-meanPackets : 20 
+meanPackets : 2000 
 
 [queue]
 preparation : 00:00:01:00

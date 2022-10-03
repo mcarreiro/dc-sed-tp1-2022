@@ -46,7 +46,11 @@ class Router: public Atomic {
 		
 
 		// const Port &in;
+		// Port to output each truck
 		Port &out ;
+		// Port to output ID only
+		Port &outId ;
+
 		// Lifetime programmed since the last state transition to the next planned internal transition.
 		VTime sigma;
 		// Time elapsed since the last state transition until now

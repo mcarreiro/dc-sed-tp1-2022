@@ -62,6 +62,7 @@ Barrier::Barrier( const string &name ) :
 	this->amountOfGates = 10;
 	this->gateAssigned = 0;
 	this->empty = Tuple<Real>({Real(-1)});
+	this->next = this->empty;
 }
 
 /*******************************************************************
@@ -110,6 +111,7 @@ Model &Barrier::externalFunction( const ExternalMessage &msg )
 	if( msg.port() == in )        // If a new vehicle is ready to be served 
 	{
 		Tuple<Real> truck = Tuple<Real>::from_value(msg.value());
+		cout << "externalFunction" << truck << endl;
 		this->next = truck;
 		this->gateAssigned = assignGate();
 		if (gateAssigned > -1){ // if there is an available gate
@@ -179,47 +181,50 @@ Model &Barrier::internalFunction( const InternalMessage &msg )
 ********************************************************************/
 Model &Barrier::outputFunction( const CollectMessage &msg )
 {	
+	Tuple<Real> out_value{this->next[0], this->next[1], (msg.time() + preparationTime).asSecs(), this->next[3], this->next[4],this->next[5], this->next[6]};
 	if( this->gateAssigned == 0 )      //assigned gate
 	{
-		sendOutput( msg.time(), out1, this->next) ;
+		sendOutput( msg.time(), out1, out_value) ;
 	}
 	if( this->gateAssigned == 1 )      //assigned gate
 	{
-		sendOutput( msg.time(), out2, this->next) ;
+		sendOutput( msg.time(), out2, out_value) ;
 	}
 	if( this->gateAssigned == 2 )      //assigned gate
 	{
-		sendOutput( msg.time(), out3, this->next) ;
+		sendOutput( msg.time(), out3, out_value) ;
 	}
 	if( this->gateAssigned == 3 )      //assigned gate
 	{
-		sendOutput( msg.time(), out4, this->next) ;
+		sendOutput( msg.time(), out4, out_value) ;
 	}
 	if( this->gateAssigned == 4 )      //assigned gate
 	{
-		sendOutput( msg.time(), out5, this->next) ;
+		sendOutput( msg.time(), out5, out_value) ;
 	}
 	if( this->gateAssigned == 5 )      //assigned gate
 	{
-		sendOutput( msg.time(), out6, this->next) ;
+		sendOutput( msg.time(), out6, out_value) ;
 	}
 	if( this->gateAssigned == 6 )      //assigned gate
 	{
-		sendOutput( msg.time(), out7, this->next) ;
+		sendOutput( msg.time(), out7, out_value) ;
 	}
 	if( this->gateAssigned == 7 )      //assigned gate
 	{
-		sendOutput( msg.time(), out8, this->next) ;
+		sendOutput( msg.time(), out8, out_value) ;
 	}
 	if( this->gateAssigned == 8 )      //assigned gate
 	{
-		sendOutput( msg.time(), out9, this->next) ;
+		sendOutput( msg.time(), out9, out_value) ;
 	}
 	if( this->gateAssigned == 9 )      //assigned gate
 	{
-		sendOutput( msg.time(), out10, this->next) ;
+		sendOutput( msg.time(), out10, out_value) ;
 	}
+
 	sendOutput( msg.time(), done, this->next[0]) ;
+
 	this->next = this->empty;
 	return *this;
 

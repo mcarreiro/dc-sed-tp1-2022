@@ -293,7 +293,7 @@ Model &Gate::externalFunction( const ExternalMessage &msg )
 
 		VTime proccesingTime = proccesingTimeTruck(msg.time(), truck);	
 
-		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + proccesingTime).asSecs(), truck[3],truck[4], truck[5]};
+		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + proccesingTime).asSecs(), truck[4],truck[5], truck[6]};
 		currentTruck = out_value;
 		
 		this->sigma    = proccesingTime;

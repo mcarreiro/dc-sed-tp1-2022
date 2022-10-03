@@ -33,7 +33,8 @@ using namespace std;
 ********************************************************************/
 Router::Router( const string &name ) : 
 	Atomic( name ),
-	out(addOutputPort( "out" ))
+	out(addOutputPort( "out" )),
+	outId(addOutputPort( "outId" ))
 {
 	startHour = 7;
 	endHour = 23;
@@ -183,9 +184,10 @@ Model &Router::outputFunction( const CollectMessage &msg )
 	int nB = (int) (*distPacketB).get();
 	int nC = (int) (*distPacketC).get();
 
-	Tuple<Real> out_value{id, msg.time().asSecs(), nA, nB, nC};
+	Tuple<Real> out_value{id, msg.time().asSecs(), 0.0, 0.0, nA, nB, nC};
 
 	sendOutput( msg.time(), out, out_value) ;
+	sendOutput( msg.time(), outId, id) ;
 	return *this;
 
 }
