@@ -14,7 +14,7 @@
 #include <algorithm> 
 #include <vector>
 #include <functional>
-
+#include <math.h> 
 #include "Gate.h"
 
 using namespace std;
@@ -45,8 +45,13 @@ Gate::Gate( const string &name ) :
 {
 	baseStartHour = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "startHour" ) );
 	baseEndHour = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "endHour" ) );
+	id = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "id" ) );
+
 	startHour = baseStartHour;
 	endHour = baseEndHour;
+
+	lastBoostUpdate = VTime::Zero;
+	workersBoost = 0.0;
 
 	dist = Distribution::create("normal");
 	MASSERT( dist ) ;
@@ -57,6 +62,26 @@ Gate::Gate( const string &name ) :
 	messageForBarrier = OPEN; // se asume que la barrier toma las gates como cerradas al principio
 
 	lastManagerWakeUp = VTime::Zero;
+}
+
+void Gate::refreshBoost(VTime now) {
+	VTime boostDuration = VTime(2,0,0,0); // duracion del boost
+	float secondsSinceUpdate = (now - lastBoostUpdate).asSecs();
+
+	float alpha = log2(workersAddPerBoost + 1.0);
+	float decay = alpha*secondsSinceUpdate/((boostDuration.asSecs()));
+	workersBoost = workersBoost* (2**(-decay));
+
+	lastBoostUpdate = now;
+}
+void Gate::boost(VTime now) {
+	refreshBoost(now);
+	workersBoost += (workersAddPerBoost+1.0);
+}
+
+int Gate::getWorkersBoost() {
+	int res = (int) workersBoost;
+	return res;
 }
 
 bool Gate::isActivePeriod(VTime now) {
@@ -93,11 +118,12 @@ int Gate::workersNow(VTime now) {
 	if (currentHours >= endHour || currentHours < startHour) {
 		workers = 2;
 	}	
-	return workers;
+	return workers + getWorkersBoost();
 }
 
 
 VTime Gate::proccesingTimeTruck(VTime now, Tuple<Real> truck) {
+	refreshBoost(now);
 	int workers = workersNow(now);
 
 	int nA = (int) stof(truck[3].asString());
@@ -289,11 +315,13 @@ Model &Gate::externalFunction( const ExternalMessage &msg )
 		// count_A
 		// count_B
 		// count_C
+		// id_gate
+		// boost_workers
 
 
 		VTime proccesingTime = proccesingTimeTruck(msg.time(), truck);	
 
-		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + proccesingTime).asSecs(), truck[4],truck[5], truck[6]};
+		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + proccesingTime).asSecs(), truck[4],truck[5], truck[6], id, getWorkersBoost()};
 		currentTruck = out_value;
 		
 		this->sigma    = proccesingTime;
@@ -309,16 +337,17 @@ Model &Gate::externalFunction( const ExternalMessage &msg )
 		}
 	}
 	else if (msg.port() == fromManager) {
-		// ignoro al manager si no estoy cerrado
 		if (currentState == FREE) {
 			currentTruck = Tuple<Real>();
 			messageForBarrier = CLOSED;
+			boost(msg.time());
 			this->sigma    = nextChange();	
 			this->elapsed  = msg.time()-lastChange();	
 			this->timeLeft = this->sigma - this->elapsed; 		}
 		else if (currentState == BUSY) {
 
 			refreshActivePeriod(msg.time()+nextChange());
+			boost(msg.time());
 
 			if (isActivePeriod(msg.time()+nextChange())) {
 				messageForBarrier = OPEN;

@@ -19,6 +19,9 @@ enum GateState {FREE, BUSY, UNAVAILABLE};
 enum BarrierUpdate {OPEN, CLOSED, NO_MESSAGE};
 
 /** declarations **/
+
+int workersAddPerBoost = 3;
+
 class Gate: public Atomic {
 	public:
 		Gate( const string &name = GATE_ATOMIC_MODEL_NAME ); // Default constructor
@@ -49,6 +52,15 @@ class Gate: public Atomic {
 
 		VTime proccesingTimeTruck(VTime now, Tuple<Real> truck);
 		int workersNow(VTime now);
+
+		float workersBoost;
+		VTime lastBoostUpdate;
+		void refreshBoost(VTime now);
+		void boost(VTime now);
+		int getWorkersBoost();
+
+		int gateId;
+
 
 		bool isActivePeriod(VTime now);
 		bool isBaseActivePeriod(VTime now);
