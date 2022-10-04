@@ -8,6 +8,8 @@ Min 4 workers por gate
 
 ------------------------
 
+DUPLICAMOS GATES DE 5 a 10. 
+
 De 9am a 12pm
 
 Gate 1: 5 TM 
@@ -38,6 +40,9 @@ y en otro horario va a estar apagada o con M workers
 Cada worker tiene 2 time advance
 
 ---------
+
+
+
 
 Gate : 6 workers y un horario de apertura
 

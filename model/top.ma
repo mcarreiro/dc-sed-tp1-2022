@@ -66,40 +66,50 @@ timeUnit : 1:0:0:0
 
 [gate1]
 startHour : 9 
-endHour : 20 
+endHour : 21
+id: 1
 
 [gate2]
 startHour : 9 
-endHour : 20 
+endHour : 21 
+id: 2
 
 [gate3]
 startHour : 9 
-endHour : 20 
+endHour : 21 
+id: 3
 
 [gate4]
 startHour : 9 
-endHour : 20 
+endHour : 21 
+id: 4
 
 [gate5]
-startHour : 9 
-endHour : 20 
+startHour : 12 
+endHour : 18 
+id: 5
 
 [gate6]
-startHour : 9 
-endHour : 20 
+startHour : 12 
+endHour : 18
+id: 6
 
 [gate7]
-startHour : 9 
-endHour : 20 
+startHour : 12 
+endHour : 18
+id: 7
 
 [gate8]
-startHour : 9 
-endHour : 20 
+startHour : 12 
+endHour : 18 
+id: 8
 
 [gate9]
-startHour : 9 
-endHour : 20 
+startHour : 12 
+endHour : 18
+id: 9
 
 [gate10]
-startHour : 9 
-endHour : 20 
+startHour : 12 
+endHour : 18
+id: 10

@@ -45,7 +45,7 @@ Gate::Gate( const string &name ) :
 {
 	baseStartHour = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "startHour" ) );
 	baseEndHour = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "endHour" ) );
-	id = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "id" ) );
+	gateId = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "id" ) );
 
 	startHour = baseStartHour;
 	endHour = baseEndHour;
@@ -70,13 +70,13 @@ void Gate::refreshBoost(VTime now) {
 
 	float alpha = log2(workersAddPerBoost + 1.0);
 	float decay = alpha*secondsSinceUpdate/((boostDuration.asSecs()));
-	workersBoost = workersBoost* (2**(-decay));
+	workersBoost = workersBoost * pow(2.0, -decay);
 
 	lastBoostUpdate = now;
 }
 void Gate::boost(VTime now) {
 	refreshBoost(now);
-	workersBoost += (workersAddPerBoost+1.0);
+	workersBoost = workersAddPerBoost+1.0;
 }
 
 int Gate::getWorkersBoost() {
@@ -102,16 +102,19 @@ int Gate::workersNow(VTime now) {
 
 	int workers = 0;
 
-	// 2 workers turno maniana
-	// 2 workers turno noche
-	// cierto overlap turno maniana / turno noche
+	// 5 maniana
+	// 5 tarde
+	// 4 overlap
 
 
-	if (currentHours >= 9 && currentHours < 18) {
-		workers += 2;
+	if (currentHours >= 9 && currentHours < 12) {
+		workers = 5;
 	}
-	if (currentHours >= 12 && currentHours < 21) {
-		workers += 2;
+	else if (currentHours >= 12 && currentHours < 18) {
+		workers = 4;
+	}
+	else if (currentHours >= 18 && currentHours < 21) {
+		workers = 5;
 	}
 
 	// 2 workers si estoy fuera de horario ?
@@ -321,7 +324,7 @@ Model &Gate::externalFunction( const ExternalMessage &msg )
 
 		VTime proccesingTime = proccesingTimeTruck(msg.time(), truck);	
 
-		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + proccesingTime).asSecs(), truck[4],truck[5], truck[6], id, getWorkersBoost()};
+		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + proccesingTime).asSecs(), truck[4],truck[5], truck[6], gateId, getWorkersBoost()};
 		currentTruck = out_value;
 		
 		this->sigma    = proccesingTime;
