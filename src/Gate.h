@@ -20,7 +20,6 @@ enum BarrierUpdate {OPEN, CLOSED, NO_MESSAGE};
 
 /** declarations **/
 
-int workersAddPerBoost = 3;
 
 class Gate: public Atomic {
 	public:
@@ -60,6 +59,8 @@ class Gate: public Atomic {
 		int getWorkersBoost();
 
 		int gateId;
+		int workersAddPerBoost = 3;
+
 
 
 		bool isActivePeriod(VTime now);
