@@ -5,7 +5,6 @@ out : out
 link : out@router in@queue
 link : outId@router arrived@transducer
 link : out@queue in@barrier
-link : throughput@transducer in@manager
 
 link : done@barrier done@queue
 link : done@barrier solved@transducer
@@ -55,7 +54,7 @@ link : out9@manager fromManager@gate9
 link : out10@manager fromManager@gate10
 
 [router]
-meanPackets : 150
+meanRoutes : 250
 
 [queue]
 preparation : 00:00:01:00
@@ -63,6 +62,9 @@ preparation : 00:00:01:00
 [transducer]
 frecuence : 1:0:0:0
 timeUnit : 1:0:0:0
+
+[manager]
+threshold : 10
 
 [gate1]
 startHour : 9 
