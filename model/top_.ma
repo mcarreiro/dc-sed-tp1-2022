@@ -55,7 +55,7 @@ link : out9@manager fromManager@gate9
 link : out10@manager fromManager@gate10
 
 [router]
-meanRoutes : 150
+meanPackets : 150
 
 [queue]
 preparation : 00:00:01:00

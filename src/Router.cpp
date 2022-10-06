@@ -57,7 +57,7 @@ Router::Router( const string &name ) :
 	distPacketC->setVar( 0,50 ) ; // mean
 
 
-	meanPacketsPerDay = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "meanPackets" ) );
+	meanRoutesPerDay = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "meanRoutes" ) );
 	scheudleTrucksForTheDay();
 }
 
@@ -66,7 +66,7 @@ void Router::scheudleTrucksForTheDay() {
 	// TODO cambiar para que media sea paametro de model
 	int n = 0;
 	while (n <= 0) {
-		double sample = distribution().get() * 20 + meanPacketsPerDay;
+		double sample = distribution().get() * 20 + meanRoutesPerDay;
 		n = (int) sample;
 	} 
 

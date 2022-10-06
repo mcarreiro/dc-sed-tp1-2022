@@ -31,7 +31,7 @@ class Router: public Atomic {
 	private:
 		int startHour; // hora del dia donde comienzan a llegar camiones
 		int endHour; // hora del dia donde dejan de llegar camiones
-		int meanPacketsPerDay;
+		int meanRoutesPerDay;
 		
 		Distribution *dist ;
 		Distribution &distribution()	{ return *dist; }

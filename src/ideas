@@ -8,7 +8,7 @@ Si tiene puertas asignadas, le manda un mensaje por el puerto Gate_N
 
 TODO
 1) Velocidad de la gate (cant paquetes, tipo, cant de workers, pre-orden, expertise) (done)
-2) Distribución de entrada (uniforme, gaussiana) (solo hicimos gaussiana, veamos)
+2) Distribución de entrada (uniforme, gaussiana) (solo hicimos gaussiana, veamos con mas ruido)
 3) Costos = unidad de workers
 4) Modelo conceptual/formal (lunes)
 5) Distribución de workers y horarios de apertura (done)
@@ -20,3 +20,20 @@ TODO
 11) Notebook (tincho)
 12) Jugar con los preparation times
 13) Graficos?
+
+
+Variables a Jugar
+1) Mas o menos desvío de cantidad de vehículos
+2) Mas o menos desvío de cantidad de paquetes
+3) Mas o menos workers por turno
+
+Cant Vehículos por día: 150 -> encontremos el máximo sin escalar
+Cantidad de paqeutes por vehículo: promedio 200, varianza 150 (poner 50 o 200 de varianza)
+Workers: hay mas workers a la mañana en la gate que a la tarde pero hay mas gates
+Horario de llegada: gaussiana pero jugar con el desvío para simular el error en las estimaciones de tráfico. Yo dije qeu llegue a las 11am pero puede llegar antes o dsp
+
+
+Graficos
+1) El de id de vehículos, puede ser un bar graphic
+2) Cota de paquetes por día
+3) Procesamiento
