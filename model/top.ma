@@ -64,6 +64,9 @@ preparation : 00:00:01:00
 frecuence : 1:0:0:0
 timeUnit : 1:0:0:0
 
+[manager]
+threshold : 10
+
 [gate1]
 startHour : 9 
 endHour : 21

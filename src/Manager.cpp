@@ -49,7 +49,7 @@ Manager::Manager( const string &name ) :
 {
 	this->amountOfGates = 10;
 	this->function=0.0; //0 mean open for a bit more, 1 means more workers
-	this->threshold=5;
+	this->threshold= str2Int( ParallelMainSimulator::Instance().getParameter( description(), "threshold" ) );
 	this->isEmergencyData = false;
 }
 
