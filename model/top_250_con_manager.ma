@@ -55,7 +55,7 @@ link : out9@manager fromManager@gate9
 link : out10@manager fromManager@gate10
 
 [router]
-meanRoutes : 250
+meanRoutes : 450
 
 [queue]
 preparation : 00:00:01:00
@@ -65,7 +65,7 @@ frecuence : 1:0:0:0
 timeUnit : 1:0:0:0
 
 [manager]
-threshold : 19
+threshold : 15
 
 [gate1]
 startHour : 9 

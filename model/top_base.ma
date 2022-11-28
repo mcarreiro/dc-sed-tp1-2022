@@ -92,37 +92,37 @@ id : 4
 startWorkers : 0
 
 [gate5]
-startHour : 12 
-endHour : 18 
+startHour : 12
+endHour : 18
 id : 5
 startWorkers : 0
 
 [gate6]
-startHour : 12 
+startHour : 12
 endHour : 18
 id : 6
 startWorkers : 0
 
 [gate7]
-startHour : 12 
+startHour : 12
 endHour : 18
 id : 7
 startWorkers : 0
 
 [gate8]
-startHour : 12 
-endHour : 18 
+startHour : 12
+endHour : 18
 id : 8
 startWorkers : 0
 
 [gate9]
-startHour : 12 
+startHour : 12
 endHour : 18
 id : 9
 startWorkers : 0
 
 [gate10]
-startHour : 12 
-endHour : 18
+startHour : 9
+endHour : 9
 id : 10
 startWorkers : 0

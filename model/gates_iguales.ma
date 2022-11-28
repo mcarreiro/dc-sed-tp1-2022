@@ -70,58 +70,58 @@ threshold : 10
 startHour : 9 
 endHour : 21
 id : 1
-startWorkers : 96
+startWorkers : 91
 
 [gate2]
 startHour : 9 
 endHour : 21
 id : 2
-startWorkers : 96
+startWorkers : 91
 
 [gate3]
 startHour : 9 
 endHour : 21
 id : 3
-startWorkers : 96
+startWorkers : 91
 
 [gate4]
 startHour : 9 
 endHour : 21 
 id : 4
-startWorkers : 96
+startWorkers : 91
 
 [gate5]
 startHour : 9 
 endHour : 21
 id : 5
-startWorkers : 96
+startWorkers : 91
 
 [gate6]
 startHour : 9 
 endHour : 21
 id : 6
-startWorkers : 96
+startWorkers : 91
 
 [gate7]
 startHour : 9 
 endHour : 21
 id : 7
-startWorkers : 96
+startWorkers : 91
 
 [gate8]
 startHour : 9 
 endHour : 21
 id : 8
-startWorkers : 96
+startWorkers : 91
 
 [gate9]
 startHour : 9 
 endHour : 21
 id : 9
-startWorkers : 96
+startWorkers : 91
 
 [gate10]
 startHour : 9 
 endHour : 21
 id : 10
-startWorkers : 96
+startWorkers : 91
