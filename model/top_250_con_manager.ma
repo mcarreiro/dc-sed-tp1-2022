@@ -65,7 +65,7 @@ frecuence : 1:0:0:0
 timeUnit : 1:0:0:0
 
 [manager]
-threshold : 5
+threshold : 19
 
 [gate1]
 startHour : 9 
