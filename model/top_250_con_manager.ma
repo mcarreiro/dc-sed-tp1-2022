@@ -55,7 +55,7 @@ link : out9@manager fromManager@gate9
 link : out10@manager fromManager@gate10
 
 [router]
-meanRoutes : 150
+meanRoutes : 250
 
 [queue]
 preparation : 00:00:01:00
@@ -71,48 +71,58 @@ threshold : 5
 startHour : 9 
 endHour : 21
 id: 1
+startWorkers : 0
 
 [gate2]
 startHour : 9 
 endHour : 21 
 id: 2
+startWorkers : 0
 
 [gate3]
 startHour : 9 
 endHour : 21 
 id: 3
+startWorkers : 0
 
 [gate4]
 startHour : 9 
 endHour : 21 
 id: 4
+startWorkers : 0
 
 [gate5]
 startHour : 12 
 endHour : 18 
 id: 5
+startWorkers : 0
 
 [gate6]
 startHour : 12 
 endHour : 18
 id: 6
+startWorkers : 0
 
 [gate7]
 startHour : 12 
 endHour : 18
 id: 7
+startWorkers : 0
 
 [gate8]
 startHour : 12 
 endHour : 18 
 id: 8
+startWorkers : 0
 
 [gate9]
 startHour : 12 
 endHour : 18
 id: 9
+startWorkers : 0
 
 [gate10]
 startHour : 12 
 endHour : 18
 id: 10
+startWorkers : 0
