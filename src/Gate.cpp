@@ -46,6 +46,7 @@ Gate::Gate( const string &name ) :
 	baseStartHour = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "startHour" ) );
 	baseEndHour = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "endHour" ) );
 	gateId = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "id" ) );
+	startWorkers = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "startWorkers" ) );
 
 	startHour = baseStartHour;
 	endHour = baseEndHour;
@@ -97,6 +98,9 @@ bool Gate::isBaseActivePeriod(VTime now) {
 }
 
 int Gate::workersNow(VTime now) {
+	if (startWorkers > 0){
+		return startWorkers;
+	}
 	int currentHours =(int) (now.asSecs()/3600);
 	currentHours = currentHours % 24;
 

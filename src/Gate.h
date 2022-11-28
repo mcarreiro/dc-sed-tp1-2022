@@ -59,6 +59,7 @@ class Gate: public Atomic {
 		int getWorkersBoost();
 
 		int gateId;
+		int startWorkers;
 		int workersAddPerBoost = 3;
 
 
