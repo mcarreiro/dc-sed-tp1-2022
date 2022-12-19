@@ -58,6 +58,8 @@ Router::Router( const string &name ) :
 
 
 	meanRoutesPerDay = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "meanRoutes" ) );
+	stdevRoutes = (float) str2Int( ParallelMainSimulator::Instance().getParameter( description(), "stdevRoutes" ) );
+
 	scheudleTrucksForTheDay();
 }
 
@@ -71,7 +73,7 @@ void Router::scheudleTrucksForTheDay() {
 	} 
 
 	float mean = (endHour+startHour)/2.0;
-	float stdev = 2.0;
+	float stdev = (float) stdevRoutes;
 
 	while (scheudledTrucks.size() < n) {
 		double sample = distribution().get();
