@@ -51,6 +51,19 @@ Gate::Gate( const string &name ) :
 	startHour = baseStartHour;
 	endHour = baseEndHour;
 
+	NewbieWorkersMorning = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "NewbieWorkersMorning" ) );
+	NewbieWorkersNoon = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "NewbieWorkersNoon" ) );
+	NewbieWorkersAfternoon = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "NewbieWorkersAfernoon" ) );
+
+	NormalWorkersMorning = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "NormalWorkersMorning" ) );
+	NormalWorkersNoon = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "NormalWorkersNoon" ) );
+	NormalWorkersAfternoon = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "NormalWorkersAfernoon" ) );
+
+	ExpertWorkersMorning = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "ExpertWorkersMorning" ) );
+	ExpertWorkersNoon = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "ExpertWorkersNoon" ) );
+	ExpertWorkersAfternoon = str2Int( ParallelMainSimulator::Instance().getParameter( description(), "ExpertWorkersAfernoon" ) );
+
+
 	lastBoostUpdate = VTime::Zero;
 	workersBoost = 0.0;
 
@@ -80,8 +93,9 @@ void Gate::boost(VTime now) {
 	workersBoost = workersAddPerBoost+1.0;
 }
 
-int Gate::getWorkersBoost() {
-	int res = (int) workersBoost;
+list<Worker> Gate::getWorkersBoost() {
+	int w = (int) workersBoost;
+	list<Worker> res(w,NormalWorker());
 	return res;
 }
 
@@ -97,41 +111,55 @@ bool Gate::isBaseActivePeriod(VTime now) {
 	return baseStartHour <= currentHours && currentHours < baseEndHour;
 }
 
-int Gate::workersNow(VTime now) {
+list<Worker> Gate::getWorkersNow(VTime now) {
 	if (startWorkers > 0){
-		return startWorkers;
+		list<Worker> res(startWorkers,NormalWorker());
+		return res;
+;
 	}
 	int currentHours =(int) (now.asSecs()/3600);
 	currentHours = currentHours % 24;
 
-	int workers = 0;
+	int newbies = 0;
+	int normal = 0;
+	int experts = 0;
 
-	// 5 maniana
-	// 5 tarde
-	// 4 overlap
-
+	list<Worker> res;
 
 	if (currentHours >= 9 && currentHours < 12) {
-		workers = 5;
+		newbies = NewbieWorkersMorning;
+		normal = NormalWorkersMorning;
+		experts = ExpertWorkersMorning;
 	}
 	else if (currentHours >= 12 && currentHours < 18) {
-		workers = 4;
+		newbies = NewbieWorkersNoon;
+		normal = NormalWorkersNoon;
+		experts = ExpertWorkersNoon;
 	}
 	else if (currentHours >= 18 && currentHours < 21) {
-		workers = 5;
+		newbies = NewbieWorkersAfternoon;
+		normal = NormalWorkersAfternoon;
+		experts = ExpertWorkersAfternoon;
 	}
 
 	// 2 workers si estoy fuera de horario ?
 	if (currentHours >= endHour || currentHours < startHour) {
-		workers = 2;
-	}	
-	return workers + getWorkersBoost();
+		list<Worker> a(2,NormalWorker());
+		return a;
+	}
+
+	for (int i=0; i<experts; i++) {res.push_back(ExpertWorker());}	
+	for (int i=0; i<normal; i++) {res.push_back(NormalWorker());}	
+	for (int i=0; i<newbies; i++) {res.push_back(NewbieWorker());}	
+	res.splice(res.end(), getWorkersBoost());
+
+	return res;
 }
 
 
 VTime Gate::proccesingTimeTruck(VTime now, Tuple<Real> truck) {
 	refreshBoost(now);
-	int workers = workersNow(now);
+	list<Worker> availableWorkers = getWorkersNow(now);
 
 	int nA = (int) stof(truck[3].asString());
 	int nB = (int) stof(truck[4].asString());
@@ -143,23 +171,37 @@ VTime Gate::proccesingTimeTruck(VTime now, Tuple<Real> truck) {
 	packetsToProccess.insert(packetsToProccess.end(), nC, 3);
 
 	VTime res = VTime::Zero;
-	priority_queue <VTime, vector<VTime>, greater<VTime>> processing;
+	priority_queue <WorkerProcess, vector<WorkerProcess>, WorkerProcessCompare> processing;
 	
-	for (int i = 0; i < min(workers, nA+nB+nC); i++) {
+	for (int i = 0; i < min(availableWorkers.size(), nA+nB+nC); i++) {
 		int packet = packetsToProccess.back();
+		Worker w = availableWorkers.front();
+		availableWorkers.pop_front();
 		packetsToProccess.pop_back();
-		processing.push(proccesingTimePacket(packet));
+		VTime t = proccesingTimePacket(packet) * (1.0/w.getSpeed());
+		WorkerProcess s;
+
+		s.worker = w;
+		s.t = t;
+
+		processing.push(s);
 	}
 
 	while (! processing.empty()) {
 
 		// sacamos el proximo y restamos del remaining time del resto 
-		priority_queue <VTime, vector<VTime>, greater<VTime>> temp;
-		VTime next = processing.top();
+		priority_queue <WorkerProcess, vector<WorkerProcess>, WorkerProcessCompare> temp;
+		WorkerProcess recent = processing.top();
+		VTime next = recent.t;
+		// (heuristica) agregamos workers disponibles al principio para intentar usar los rapidos
+		// ni idea que tan buena es
+		availableWorkers.push_front(recent.worker);
 		processing.pop();
 
 		while (! processing.empty()) {
-			temp.push(processing.top() - next);
+			WorkerProcess s = processing.top();
+			s.t = s.t- next
+			temp.push( s);
 			processing.pop();
 		}
 		processing = temp;
@@ -169,9 +211,18 @@ VTime Gate::proccesingTimeTruck(VTime now, Tuple<Real> truck) {
 
 		// si quedan paquetes por procesar agregamos uno mas por el worker desocupado
 		if (packetsToProccess.size() > 0) {
+
 			int packet = packetsToProccess.back();
+			Worker w = availableWorkers.front();
+			availableWorkers.pop_front();
 			packetsToProccess.pop_back();
-			processing.push(proccesingTimePacket(packet));
+			VTime t = proccesingTimePacket(packet) * (1.0/w.getSpeed());
+
+			WorkerProcess s;
+			s.worker = w;
+			s.t = t;
+
+			processing.push(s);
 		}
 
 	}
@@ -328,7 +379,7 @@ Model &Gate::externalFunction( const ExternalMessage &msg )
 
 		VTime proccesingTime = proccesingTimeTruck(msg.time(), truck);	
 
-		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + proccesingTime).asSecs(), truck[4],truck[5], truck[6], gateId, getWorkersBoost()};
+		Tuple<Real> out_value{truck[0], truck[1], truck[2], (msg.time() + proccesingTime).asSecs(), truck[4],truck[5], truck[6], gateId, getWorkersBoost().size()};
 		currentTruck = out_value;
 		
 		this->sigma    = proccesingTime;
