@@ -399,7 +399,10 @@ Model &Gate::externalFunction( const ExternalMessage &msg )
 		if (currentState == FREE) {
 			currentTruck = Tuple<Real>();
 			messageForBarrier = CLOSED;
-			boost(msg.time());
+
+			int boostMessage = (int) Real::from_value(msg.value());
+			boost(msg.time(), boostMessage);
+			
 			this->sigma    = nextChange();	
 			this->elapsed  = msg.time()-lastChange();	
 			this->timeLeft = this->sigma - this->elapsed; 		}
