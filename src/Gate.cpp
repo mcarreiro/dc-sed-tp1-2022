@@ -88,13 +88,14 @@ void Gate::refreshBoost(VTime now) {
 
 	lastBoostUpdate = now;
 }
-void Gate::boost(VTime now) {
-	refreshBoost(now);
-	workersBoost = workersAddPerBoost+1.0;
+void Gate::boost(VTime now, int boostSize) {
+	// refreshBoost(now);
+	// workersBoost = workersAddPerBoost+1.0;
+	workersAddPerBoost = boostSize;
 }
 
 list<Worker> Gate::getWorkersBoost() {
-	int w = (int) workersBoost;
+	int w = workersAddPerBoost;
 	list<Worker> res(w,NormalWorker());
 	return res;
 }
@@ -405,7 +406,8 @@ Model &Gate::externalFunction( const ExternalMessage &msg )
 		else if (currentState == BUSY) {
 
 			refreshActivePeriod(msg.time()+nextChange());
-			boost(msg.time());
+			int boostMessage = (int) Real::from_value(msg.value());
+			boost(msg.time(), boostMessage);
 
 			if (isActivePeriod(msg.time()+nextChange())) {
 				messageForBarrier = OPEN;

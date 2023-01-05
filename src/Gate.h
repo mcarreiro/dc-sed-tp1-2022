@@ -79,15 +79,15 @@ class Gate: public Atomic {
 		VTime proccesingTimeTruck(VTime now, Tuple<Real> truck);
 		list<Worker> getWorkersNow(VTime now);
 
-		float workersBoost;
+		float workersBoost = 0;
 		VTime lastBoostUpdate;
 		void refreshBoost(VTime now);
-		void boost(VTime now);
+		void boost(VTime now, int boostSize);
 		list<Worker> getWorkersBoost();
 
 		int gateId;
 		int startWorkers;
-		int workersAddPerBoost = 3;
+		int workersAddPerBoost = 0;
 
 		int NewbieWorkersMorning  ;
 		int NewbieWorkersNoon ;
